@@ -33,33 +33,41 @@ const address = '8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY';
   // 
   //   tape.equals('block')
   // })
-  test('chain', async tape => {
-    tape.plan(8)
-    
-    let value = await chain.getTransactions()
-    tape.equals(value.length, 1, 'getTransactions')
-    
-    value = await chain.getTransactions(false, 1)
-    tape.equals(value.length, 0, 'getTransactions after block 1')
-    
-    value = await chain.getTransactionsForAddress(address)
-    tape.equals(value.length, 1, 'getTransactionsForAddress')
-    
-    value = await chain.getTransactionsForAddress(address, 1)
-    tape.equals(value.length, 0, 'getTransactionsForAddress after block 1')
-    
-    value = await chain.getUnspent(address)
-    tape.equals(value.length, 1, 'getUnspent')
-    
-    value = await chain.getUnspentForAddress(address)
-    tape.equals(value.length, 1, 'getUnspentForAddress')
-    
-    value = await chain.getBalanceForAddress(address)
-    tape.equals(value, 150, 'getBalanceForAddress')
-    
-    value = await chain.getBalanceForAddress(address, 1)
-    tape.equals(value, 0, 'getBalanceForAddress after block 1')
-  })
+  const testChain = () => new Promise((resolve, reject) => {
+    test('chain', async tape => {
+      tape.plan(8)
+      
+      let value = await chain.getTransactions()
+      tape.equals(value.length, 1, 'getTransactions')
+      
+      value = await chain.getTransactions(false, 1)
+      tape.equals(value.length, 0, 'getTransactions after block 1')
+      
+      value = await chain.getTransactionsForAddress(address)
+      tape.equals(value.length, 1, 'getTransactionsForAddress')
+      
+      value = await chain.getTransactionsForAddress(address, 1)
+      tape.equals(value.length, 0, 'getTransactionsForAddress after block 1')
+      
+      value = await chain.getUnspent(address)
+      tape.equals(value.length, 1, 'getUnspent')
+      
+      value = await chain.getUnspentForAddress(address)
+      tape.equals(value.length, 1, 'getUnspentForAddress')
+      
+      value = await chain.getBalanceForAddress(address)
+      tape.equals(value, 150, 'getBalanceForAddress')
+      
+      value = await chain.getBalanceForAddress(address, 1)
+      tape.equals(value, 0, 'getBalanceForAddress after block 1')
+      
+      setTimeout(function () {
+        resolve()
+      }, 200);
+    })
+  });
+  await testChain()
+  process.exit(0)
   
   
 })()

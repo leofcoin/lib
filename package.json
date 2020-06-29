@@ -5,9 +5,12 @@
   "license": "MIT",
   "private": false,
   "scripts": {
+    "test": "node test",
     "start": "node index.js",
     "compile": "rollup -c",
-    "doc": "./node_modules/.bin/esdoc"
+    "doc": "./node_modules/.bin/esdoc",
+    "coverage": "nyc --reporter=lcov npm run test",
+    "coveralls": "cat ./coverage/lcov.info | coveralls"
   },
   "description": "project template node",
   "repository": "https://github.com/leofcoin/lib",
@@ -24,6 +27,7 @@
     "esdoc-ecmascript-proposal-plugin": "^1.0.0",
     "esdoc-standard-plugin": "^1.0.0",
     "lfc-api": "^2.14.2",
+    "nyc": "^15.1.0",
     "rollup": "^2.18.1",
     "tape": "^5.0.1"
   },

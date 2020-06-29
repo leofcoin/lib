@@ -1,0 +1,25 @@
+os:
+  - linux
+  - windows
+  - osx
+
+language: node_js
+node_js:
+- node
+- 14
+
+script:
+  - npm run compile
+  - npm run doc
+  - npm run test
+  - mkdir lib
+  - cp -r docs/** lib # CP docs to lib (project name) folder
+  - git add .
+
+after_success: 
+  - npm run coverage
+  - npm run coveralls
+
+branches:
+  only:
+  - master
