@@ -1,0 +1,54 @@
+{
+  "name": "@leofcoin/lib",
+  "version": "0.1.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "start": "node index.js",
+    "compile": "rollup -c",
+    "doc": "./node_modules/.bin/esdoc"
+  },
+  "description": "project template node",
+  "repository": "https://github.com/leofcoin/lib",
+  "author": "vandeurenglenn <vandeurenglenn@gmail.com>",
+  "dependencies": {
+    "@leofcoin/multi-wallet": "^2.0.0",
+    "cids": "^0.8.3",
+    "ipld-lfc": "^0.1.4",
+    "ipld-lfc-tx": "^0.3.3"
+  },
+  "devDependencies": {
+    "coveralls": "^3.1.0",
+    "esdoc": "^1.1.0",
+    "esdoc-ecmascript-proposal-plugin": "^1.0.0",
+    "esdoc-standard-plugin": "^1.0.0",
+    "lfc-api": "^2.14.2",
+    "rollup": "^2.18.1",
+    "tape": "^5.0.1"
+  },
+  "homepage": "https://github.com/leofcoin/lib#readme",
+  "esdoc": {
+    "source": "./src/",
+    "destination": "./docs",
+    "plugins": [
+      {
+        "name": "esdoc-ecmascript-proposal-plugin",
+        "option": {
+          "classProperties": true,
+          "objectRestSpread": true,
+          "doExpressions": true,
+          "functionBind": true,
+          "functionSent": true,
+          "asyncGenerators": true,
+          "decorators": true,
+          "exportExtensions": true,
+          "dynamicImport": true
+        }
+      },
+      {
+        "name": "esdoc-standard-plugin"
+      }
+    ]
+  }
+}

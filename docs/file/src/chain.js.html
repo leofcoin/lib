@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/chain.js | @leofcoin/lib</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+<meta name="description" content="project template node"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="@leofcoin/lib"><meta property="twitter:description" content="project template node"></head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+<a style="position:relative; top:3px;" href="https://github.com/leofcoin/lib"><img width="20px" src="./image/github.png"></a></header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/chain.js~Chain.html">Chain</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors.js~Errors.html">Errors</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/hash.js~Hash.html">Hash</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/validate.js~Validate.html">Validate</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-lastBlock">lastBlock</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-longestChain">longestChain</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newBlock">newBlock</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newGenesisDAGNode">newGenesisDAGNode</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-nextBlock">nextBlock</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-hash">hash</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-transaction">transaction</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-validate">validate</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBLOCK">GENESISBLOCK</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBS58">GENESISBS58</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-consensusSubsidyInterval">consensusSubsidyInterval</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-consensusSubsidyPercentage">consensusSubsidyPercentage</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-genesisCID">genesisCID</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-network">network</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-reward">reward</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/chain.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { GENESISBLOCK } from &apos;./params&apos;
+import Validator from &apos;./validate&apos;
+const invalidTransactions = {};
+
+globalThis.chain = globalThis.chain || [
+  GENESISBLOCK
+];
+
+globalThis.mempool = globalThis.mempool || [];
+globalThis.blockHashSet = globalThis.blockHashSet || [];
+
+export default class Chain {
+  constructor() {
+    this.validateTransaction = new Validator().validateTransaction
+  }
+  
+  get chain() { return globalThis.chain }
+  
+  get mempool() { return globalThis.mempool }
+  
+  get blockHashSet() { return globalThis.blockHashSet }
+  
+  // TODO: needs 3 nodes running
+  invalidTransaction(data) {
+    // console.log(data.data.toString());
+    data = JSON.parse(data.data.toString());
+    if (!invalidTransactions[data.tx]) invalidTransactions[data.tx] = 0;
+    ++invalidTransactions[data.tx]
+    const count = invalidTransactions[data.tx];
+    if (count === 3) {
+      const memIndex = mempool.indexOf(data)
+      mempool.splice(memIndex, 1)
+      delete invalidTransactions[data.tx];
+    }
+  }
+  
+  async getTransactions(withMempool = true, index = 0) {
+    const _chain = [...chain];
+    if (index === chain.length - 1) return []
+    _chain.slice(index + 1, chain.length - 1)
+  	let transactions = _chain.reduce((transactions, block) =&gt; [ ...transactions, ...block.transactions], []);
+  	if (withMempool) transactions = transactions.concat(mempool);
+    let _transactions = []
+    // TODO: deprecated, get/put should be handled in core
+    for (const tx of transactions) {
+      const {multihash} = tx
+      if (multihash) {
+        let value;
+        if (leofcoin.transaction.dag) value = await leofcoin.transaction.dag.get(multihash)
+        _transactions.push(value)
+      } else {
+        _transactions.push(tx)
+      }
+      
+    }
+    return _transactions
+  };
+  
+  async getTransactionsForAddress(address, index = 0) {
+    const transactions = await this.getTransactions(false, index);
+  	return transactions.filter(tx =&gt; tx.inputs.find(i =&gt; i.address === address) ||
+    tx.outputs.find(o =&gt; o.address === address));
+  };
+  
+  /**
+   * 
+   * @param {string} withMempool - with or without mempool inclusion
+   * @param {number} index - block height to start from
+   */
+  async getUnspent(withMempool = false, index = 0) {
+  	const transactions = await this.getTransactions(withMempool, index);
+  	// Find all inputs with their tx ids
+  	const inputs = transactions.reduce((inputs, tx) =&gt; inputs.concat(tx.inputs), []);
+  
+  	// Find all outputs with their tx ids
+  	const outputs = transactions.reduce((outputs, tx) =&gt;
+  		outputs.concat(tx.outputs.map(output =&gt; Object.assign({}, output, {tx: tx.id}))), []);
+  
+  	// Figure out which outputs are unspent
+  	const unspent = outputs.filter(output =&gt;
+  		typeof inputs.find(input =&gt; input.tx === output.tx &amp;&amp; input.index === output.index &amp;&amp; input.amount === output.amount) === &apos;undefined&apos;);
+  	return unspent;
+  }
+  
+  /**
+   * @param {string} address - wallet address
+   * @param {number} index - block height to start from
+   */
+  async getUnspentForAddress(address = null, index = 0) {
+    const unspent = await this.getUnspent(true, index)
+  	return unspent.filter(u =&gt; u.address === address);
+  }
+  
+  /**
+   * @param {string} address - wallet address
+   */
+  async getBalanceForAddress(address = null, index) {
+    // debug(`Getting balance for ${address}`)
+    const unspent = await this.getUnspentForAddress(address, index)
+    const amount = unspent.reduce((acc, u) =&gt; acc + u.amount , 0);
+    // debug(`Got ${amount} for ${address}`)
+  	return amount
+  }
+  
+  /**
+   * @deprecated Use getTransactionsForAddress(addr, index) instead
+   *
+   * @param {string} address - wallet address
+   * @param {number} index - block height to start from
+   * 
+   * @return {number} balance
+   */
+  async getBalanceForAddressAfter(address = null, index = 0) {
+    // debug(`Getting balance for ${address} @${index}`)
+    const unspent = await this.getUnspentForAddress(address, index)
+    const amount = unspent.reduce((acc, u) =&gt; acc + u.amount , 0);
+    // debug(`Got ${amount} for ${address} @${index}`)
+    return amount
+  }
+  
+  median(array) {
+    array.sort((a,b) =&gt; a - b)
+  
+    var half = Math.floor(array.length / 2);
+  
+    if(array.length % 2)
+      return array[half];
+    else
+      return (array[half - 1] + array[half]) / 2.0;
+  }
+  
+  difficulty() {
+  	// TODO: lower difficulty when transactionpool contain more then 500 tx ?
+  	// TODO: raise difficulty when pool is empty
+  
+    // or
+  
+    // TODO: implement iTX (instant transaction)
+    // iTX is handled by multiple peers, itx is chained together by their hashes
+    // by handlng a tx as itx the block well be converted into a iRootBlock
+    // this results into smaller chains (tangles, tails) which should improve
+    // resolving transactions, wallet amounts etc ...
+  	const start = chain.length &gt;= 128 ? (chain.length - 128) : 0;
+  	const blocks = chain.slice(start, (chain.length - 1)).reverse();
+  	const stamps = [];
+  	for (var i = 0; i &lt; blocks.length; i++) {
+  		if (blocks[i + 1]) {
+  			stamps.push(blocks[i].time - blocks[i + 1].time);
+  		}
+  	}
+  	if (stamps.length === 0) {
+  		stamps.push(10);
+  	}
+  	let blocksMedian = this.median(stamps) || 10;
+    const offset = blocksMedian / 10
+     // offset for quick recovery
+  	if (blocksMedian &lt; 10) {
+  		blocksMedian -= (offset / 2);
+  	} else if (blocksMedian &gt; 10) {
+  		blocksMedian += (offset * 2);
+  	}
+    if (blocksMedian &lt; 0) blocksMedian = -blocksMedian
+    console.log(`Average Block Time: ${blocksMedian}`);
+    console.log(`Difficulty: ${10 / blocksMedian}`);
+  	return (1000 / (10 / blocksMedian));
+  };//10000
+  
+  
+  /**
+   * Get the transactions for the next Block
+   *
+   * @return {object} transactions
+   */
+  async nextBlockTransactions() {
+  	const unspent = await this.getUnspent(false);
+  	return mempool.filter(async (transaction) =&gt; {
+      const multihash = transaction.multihash
+      const value = await leofcoin.transaction.get(multihash)
+      console.log({value});
+  		try {
+  			await this.validateTransaction(multihash, value, unspent);
+        return transaction
+  		} catch (e) {
+        globalThis.ipfs.pubsub.publish(&apos;invalid-transaction&apos;, Buffer.from(JSON.stringify(transaction)));
+  			console.error(e);
+  		}
+  	});
+  };
+}</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.1.0)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

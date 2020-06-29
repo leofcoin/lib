@@ -1,0 +1,81 @@
+[
+  {
+    "name": "newBlock",
+    "filePath": "src/block.js",
+    "lines": [
+      {
+        "lineNumber": 91,
+        "line": "/**\r"
+      },
+      {
+        "lineNumber": 92,
+        "line": "\t * Create new block\r"
+      },
+      {
+        "lineNumber": 93,
+        "line": "\t *\r"
+      },
+      {
+        "lineNumber": 94,
+        "line": "\t * @param {array} transactions\r"
+      },
+      {
+        "lineNumber": 95,
+        "line": "\t * @param {object} previousBlock\r"
+      },
+      {
+        "lineNumber": 96,
+        "line": "\t * @param {string} address\r"
+      },
+      {
+        "lineNumber": 97,
+        "line": "\t * @return {index, prevHash, time, transactions, nonce}\r"
+      },
+      {
+        "lineNumber": 98,
+        "line": "\t */\r"
+      },
+      {
+        "lineNumber": 99,
+        "line": "export const newBlock = async ({transactions = [], previousBlock, address}) => {\r"
+      }
+    ],
+    "codeParams": [
+      "*"
+    ],
+    "docParams": [
+      "transactions",
+      "previousBlock",
+      "address"
+    ]
+  },
+  {
+    "name": "Chain#getBalanceForAddress",
+    "filePath": "src/chain.js",
+    "lines": [
+      {
+        "lineNumber": 93,
+        "line": "  /**\r"
+      },
+      {
+        "lineNumber": 94,
+        "line": "   * @param {string} address - wallet address\r"
+      },
+      {
+        "lineNumber": 95,
+        "line": "   */\r"
+      },
+      {
+        "lineNumber": 96,
+        "line": "  async getBalanceForAddress(address = null, index) {\r"
+      }
+    ],
+    "codeParams": [
+      "address",
+      "index"
+    ],
+    "docParams": [
+      "address"
+    ]
+  }
+]

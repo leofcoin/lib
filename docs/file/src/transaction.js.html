@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/transaction.js | @leofcoin/lib</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  <script src="script/manual.js"></script>
+<meta name="description" content="project template node"><meta property="twitter:card" content="summary"><meta property="twitter:title" content="@leofcoin/lib"><meta property="twitter:description" content="project template node"></head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+<a style="position:relative; top:3px;" href="https://github.com/leofcoin/lib"><img width="20px" src="./image/github.png"></a></header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/chain.js~Chain.html">Chain</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors.js~Errors.html">Errors</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/hash.js~Hash.html">Hash</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/validate.js~Validate.html">Validate</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-lastBlock">lastBlock</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-longestChain">longestChain</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newBlock">newBlock</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newGenesisDAGNode">newGenesisDAGNode</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-nextBlock">nextBlock</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-hash">hash</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-transaction">transaction</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-validate">validate</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBLOCK">GENESISBLOCK</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBS58">GENESISBS58</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-consensusSubsidyInterval">consensusSubsidyInterval</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-consensusSubsidyPercentage">consensusSubsidyPercentage</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-genesisCID">genesisCID</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-network">network</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-reward">reward</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/transaction.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import Validator from &apos;./validate.js&apos;
+import Chain from &apos;./chain&apos;
+import Errors from &apos;./errors.js&apos;
+import Hash from &apos;./hash.js&apos;
+import { randomBytes } from &apos;crypto&apos;
+import MultiWallet from &apos;@leofcoin/multi-wallet&apos;
+import { network, consensusSubsidyInterval, reward } from &apos;./params.js&apos;;
+import * as ipldLfcTx from &apos;ipld-lfc-tx&apos;;
+
+const { LFCTx, util } = ipldLfcTx
+
+
+export default class Transaction {
+  constructor() {
+    this.validator = new Validator()
+    this.isValid = this.validator.isValid
+    this.getUnspentForAddress = new Chain().getUnspentForAddress
+    this.TransactionError = new Errors().TransactionError
+    const hash = new Hash()
+    this.transactionInputHash = hash.transactionInputHash
+    this.transactionHash = hash.transactionHash
+  }
+  
+  /**
+   * validate transaction
+   *
+   * @param multihash
+   * @param transaction
+   * @param unspent
+   */
+  async validateTransaction(multihash, transaction, unspent) {
+  	if (!transaction.reward) delete transaction.reward
+  	const outputs = transaction.outputs.map(o =&gt; {
+  		// TODO: fix script
+  		if (!o.script) delete o.script
+  		return o
+  	})
+  	transaction.outputs = outputs
+  	if (!transaction.script) delete transaction.script
+  	if (!isValid(&apos;transaction&apos;, transaction)) throw this.TransactionError(&apos;Invalid transaction&apos;);
+  	if (multihash !== await this.transactionHash(transaction)) throw this.TransactionError(&apos;Invalid transaction hash&apos;);
+  	// TODO: versions should be handled here...
+  	// Verify each input signature
+  	
+  	if (transaction.inputs) {
+  		transaction.inputs.forEach(input =&gt; {
+  	  	const { signature, address } = input;
+  			const hash = this.transactionInputHash(input);
+  
+  	  	let wallet = new MultiWallet(network);
+  	    wallet.fromAddress(address, null, network);
+  			
+  			if (!wallet.verify(Buffer.from(signature, &apos;hex&apos;), Buffer.from(hash, &apos;hex&apos;)))
+  				throw this.TransactionError(&apos;Invalid input signature&apos;);
+  		});
+  	
+  		// Check if inputs are in unspent list
+  		transaction.inputs.forEach((input) =&gt; {
+  			if (!unspent.find(out =&gt; out.tx === input.tx &amp;&amp; out.index === input.index)) { throw this.TransactionError(&apos;Input has been already spent: &apos; + input.tx); }
+  		});	
+  	}
+  	
+  	if (transaction.reward === &apos;mined&apos;) {
+  		// For reward transaction: check if reward output is correct
+  		if (transaction.outputs.length !== 1) throw this.TransactionError(&apos;Reward transaction must have exactly one output&apos;);
+  		if (transaction.outputs[0].amount !== reward) throw this.TransactionError(`Mining reward must be exactly: ${reward}`);
+  	} else if (transaction.inputs) {
+  		// For normal transaction: check if total output amount equals input amount
+  		if (transaction.inputs.reduce((acc, input) =&gt; acc + input.amount, 0) !==
+        transaction.outputs.reduce((acc, output) =&gt; acc + output.amount, 0)) { throw this.TransactionError(&apos;Input and output amounts do not match&apos;); }
+  	}
+  
+  	return true;
+  }
+  
+  /**
+   * validate transactions list for current block
+   *
+   * @param {array} transactions
+   * @param unspent
+   */
+  async validateTransactions(transactions, unspent) {
+  	const _transactions = []
+  	for (const {multihash} of transactions) {
+  		const tx = await leofcoin.transaction.dag.get(multihash)
+  		_transactions.push({multihash, value: tx.toJSON()})
+  		
+  	}
+  	for (const {value, multihash} of _transactions) {
+  		// TODO: fix value.scrip
+  		await this.validateTransaction(multihash, value, unspent)
+  	}
+  	
+  	if (_transactions.filter(({value}) =&gt; value.reward === &apos;mined&apos;).length !== 1)
+  		throw this.TransactionError(&apos;Transactions cannot have more than one reward&apos;)	
+  }
+  
+  /**
+   * Create transaction
+   *
+   * @param inputs
+   * @param outputs
+   * @param reward
+   * @return {{id: string, reward: boolean, inputs: *, outputs: *, hash: string}}
+   */
+  async newTransaction(inputs, outputs, reward = null) {
+  	try {
+  		const tx = new LFCTx({
+  			id: randomBytes(32).toString(&apos;hex&apos;),
+  			time: Math.floor(new Date().getTime() / 1000),
+  			reward,
+  			outputs,
+  			inputs
+  		});
+  		// const cid = await util.cid(tx.serialize())
+  		// await global.ipfs.dag.put(tx, {format: util.codec, hashAlg: util.defaultHashAlg, version: 1, baseFormat: &apos;base58btc&apos;})
+  		return tx
+  	} catch (e) {
+  		throw e
+  	}
+  }
+  
+  /**
+   * @param {number} height
+   */
+  consensusSubsidy(height) {
+  	const quarterlings = height / consensusSubsidyInterval;
+  	if (quarterlings &gt;= 256) {
+  		return 0;
+  	}
+  	//subsidy is lowered by 12.5 %, approx every year
+  	const minus = quarterlings &gt;= 1 ? (quarterlings * (reward / 256)) : 0;
+  	return reward - minus;
+  }
+  
+  /**
+   * Create reward transaction for block mining
+   *
+   * @param {string} address
+   * @param {number} height
+   * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}
+   */
+  async createRewardTransaction(address, height) {
+  	return this.newTransaction([], [{index: 0, amount: this.consensusSubsidy(height), address}], &apos;mined&apos;);
+  };
+  
+  /**
+   * Verify signature
+   *
+   * @param {string} address - signer address
+   * @param {string} signature - signature to verify
+   * @param {string} hash - transaction hash
+   */
+  verifySignature(address, signature, hash) {
+  	const wallet = new MultiWallet(network);
+  	return wallet.verify(signature, hash, address);
+  }
+  
+  /**
+   * Create and sign input
+   *
+   * @param transaction Based on transaction id
+   * @param index Based on transaction output index
+   * @param amount
+   * @param wallet
+   * @return {transaction, index, amount, address}
+   */
+  createInput(transaction, index, amount, wallet) {
+  	const input = {
+  		transaction,
+  		index,
+  		amount,
+  		address: wallet.address,
+  	};
+  	input.signature = wallet.sign(Buffer.from(this.transactionInputHash(input), &apos;hex&apos;)).toString(&apos;hex&apos;);
+  	return input;
+  }
+  
+  /**
+   * Create a transaction
+   *
+   * @param wallet
+   * @param toAddress
+   * @param amount
+   * @return {id, reward, inputs, outputs, hash,}
+   */
+  async buildTransaction(wallet, toAddress, amount) {
+  	let inputsAmount = 0;
+  	const unspent = await this.getUnspentForAddress(wallet.address);
+  	const inputsRaw = unspent.filter(i =&gt; {
+  		const more = inputsAmount &lt; amount;
+  		if (more) inputsAmount += i.amount;
+  		return more;
+  	});
+  	if (inputsAmount &lt; amount) throw this.TransactionError(&apos;Not enough funds&apos;);
+  	// TODO: Add multiSigning
+  	const inputs = inputsRaw.map(i =&gt; this.createInput(i.tx, i.index, i.amount, wallet));
+  	// Send amount to destination address
+  	const outputs = [{index: 0, amount, address: toAddress}];
+  	// Send back change to my wallet
+  	if (inputsAmount - amount &gt; 0) {
+  		outputs.push({index: 1, amount: inputsAmount - amount, address: wallet.address});
+  	}
+  	return this.newTransaction(inputs, outputs);
+  }
+}
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(1.1.0)</span><img src="./image/esdoc-logo-mini-black.png"></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>
