@@ -1,5 +1,9 @@
-import { GENESISBLOCK } from './params'
+import { GENESISBLOCK, genesisCID } from './params'
 import Validator from './validate'
+import { createRewardTransaction } from './transaction'
+import Hash from './hash'
+import { consensusSubsidyInterval, reward } from './params.js';
+
 const invalidTransactions = {};
 
 globalThis.chain = globalThis.chain || [
@@ -9,8 +13,20 @@ globalThis.chain = globalThis.chain || [
 globalThis.mempool = globalThis.mempool || [];
 globalThis.blockHashSet = globalThis.blockHashSet || [];
 
-export default class Chain {
+const filterPeers = (peers, localPeer) => {
+  const set = []
+  return peers.reduce((p, c) => {
+    if (set.indexOf(c.peer) === -1 && c.peer !== localPeer) {
+      set.push(c.peer)
+      p.push(c)
+    }
+    return p
+  }, [])
+}
+
+export default class Chain extends Hash{
   constructor() {
+    super()
     this.validateTransaction = new Validator().validateTransaction
   }
   
@@ -32,6 +48,20 @@ export default class Chain {
       mempool.splice(memIndex, 1)
       delete invalidTransactions[data.tx];
     }
+  }
+  
+  /**
+   * @param {number} height
+   */
+  consensusSubsidy(height) {
+    console.log(height);
+  	const quarterlings = height / consensusSubsidyInterval;
+  	if (quarterlings >= 256) {
+  		return 0;
+  	}
+  	//subsidy is lowered by 12.5 %, approx every year
+  	const minus = quarterlings >= 1 ? (quarterlings * (reward / 256)) : 0;
+  	return reward - minus;
   }
   
   async getTransactions(withMempool = true, index = 0) {
@@ -173,7 +203,9 @@ export default class Chain {
    */
   async nextBlockTransactions() {
   	const unspent = await this.getUnspent(false);
+    console.log(unspent);
   	return mempool.filter(async (transaction) => {
+      console.log(transaction);
       const multihash = transaction.multihash
       const value = await leofcoin.transaction.get(multihash)
       console.log({value});
@@ -185,5 +217,130 @@ export default class Chain {
   			console.error(e);
   		}
   	});
-  };
+  }  
+  
+  longestChain() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let peers = await globalThis.ipfs.swarm.peers()
+        console.log(peers);
+        peers = await filterPeers(peers, globalThis.peerId)
+        console.log(peers);
+        // if (peers.length < 2) return setTimeout(async () => {
+        //   const res = await longestChain()
+        //   resolve(res)
+        // }, 100);
+        
+        const set = []
+        for (const {peer} of peers) {
+          const chunks = []
+          try {
+            for await (const chunk of ipfs.name.resolve(peer)) {
+              chunks.push(chunk)
+            }
+          } catch (e) {
+            console.warn(e)
+          }
+          if (chunks.length > 0) set.push({peer, path: chunks});
+        }
+        const _peers = []
+        let _blocks = []
+        for (const {peer, path} of set) {    
+          if (_peers.indexOf(peer) === -1) {
+            _peers.push(peer)
+            const block = await leofcoin.block.dag.get(path[0] || path)      
+            _blocks.push({block, path: path[0] || path})        
+          }        
+        }
+        const localIndex = await chainStore.get('localIndex')
+        const localHash = await chainStore.get('localBlock')
+        console.log({localHash});
+        const history = {}
+        _blocks = _blocks.reduce((set, {block, path}) => {
+          if (set.block.index < block.index) {
+            history[set.block.index] = set;
+            set.block = block
+            set.hash = path.replace('/ipfs/', '')
+            set.seen = 1
+          } else if (set.block.index === block.index) {
+            set.seen = Number(set.seen) + 1
+          }
+          return set
+        }, {block: { index: localIndex }, hash: localHash, seen: 0})
+        // temp 
+        // if (_blocks.seen < 2) {
+        //   _blocks = history[_blocks.block.index - 1]
+        // 
+        // }
+        // const localIndex = await chainStore.get('localIndex')
+        // const localHash = await chainStore.get('localBlock')
+        return resolve({index: _blocks.block.index, hash: _blocks.hash})
+        
+      } catch (e) {
+        console.warn(e);
+        debug(e)
+        reject(e)
+      }
+    })
+  }
+  
+  lastBlock() {
+    return new Promise(async (resolve, reject) => {
+      const result = await this.longestChain();
+      
+      resolve(result); // retrieve links
+    });
+  }
+  
+  
+  async nextBlock(address) {
+    console.log(address);
+    console.log({address});
+    let transactions;
+    let previousBlock;
+    try {
+      previousBlock = await this.lastBlock()
+      
+      if (previousBlock.index > chain.length - 1) {
+        await leofcoin.chain.sync()
+        previousBlock = await this.lastBlock()
+      }
+      if (!previousBlock.index) previousBlock = chain[chain.length - 1]
+      transactions = await this.nextBlockTransactions();
+    } catch (e) {
+      previousBlock = GENESISBLOCK
+      previousBlock.hash = genesisCID
+      transactions = await this.nextBlockTransactions();
+    } finally {
+      // console.log(transactions, previousBlock, address);
+      console.log({transactions});
+      return await this.newBlock({transactions, previousBlock, address});
+    }
+  }  
+  
+  /**
+  	 * Create new block
+  	 *
+  	 * @param {array} transactions
+  	 * @param {object} previousBlock
+  	 * @param {string} address
+  	 * @return {index, prevHash, time, transactions, nonce}
+  	 */
+  async newBlock({transactions = [], previousBlock, address}) {
+  	const index = previousBlock.index + 1
+  	const minedTx = await createRewardTransaction(address, this.consensusSubsidy(index))
+  	transactions.push(minedTx.toJSON());
+    console.log({transactions});
+  	this.data = {
+  		index,
+  		prevHash: previousBlock.hash,
+  		time: Math.floor(new Date().getTime() / 1000),
+  		transactions,
+  		nonce: 0
+  	};
+    console.log({data: this.data});
+  	this.data.hash = await this.blockHash(this.data);
+    console.log({hash: this.data.hash});
+  	return this.data;
+  }
 }

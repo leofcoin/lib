@@ -9,5 +9,10 @@ export const GENESISBLOCK = {
   time: 1590240964,
   transactions: [],
   nonce: 1077701
-};
+}
+
+/**
+ * network (hardcoded for now)
+ * @dev change to 'leofcoin:olivia' for testnet
+ */
 export const network = 'leofcoin'

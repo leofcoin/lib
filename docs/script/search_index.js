@@ -1,5 +1,11 @@
 window.esdocSearchIndex = [
   [
+    "@leofcoin/lib/src/block.js~block",
+    "class/src/block.js~Block.html",
+    "<span>Block</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/block.js</span>",
+    "class"
+  ],
+  [
     "@leofcoin/lib/src/chain.js~chain",
     "class/src/chain.js~Chain.html",
     "<span>Chain</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/chain.js</span>",
@@ -42,6 +48,12 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
+    "@leofcoin/lib/src/index.js~block",
+    "variable/index.html#static-variable-block",
+    "<span>block</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/index.js</span>",
+    "variable"
+  ],
+  [
     "@leofcoin/lib/src/index.js~chain",
     "variable/index.html#static-variable-chain",
     "<span>chain</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/index.js</span>",
@@ -58,6 +70,12 @@ window.esdocSearchIndex = [
     "variable/index.html#static-variable-consensusSubsidyPercentage",
     "<span>consensusSubsidyPercentage</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/params.js</span>",
     "variable"
+  ],
+  [
+    "@leofcoin/lib/src/transaction.js~createrewardtransaction",
+    "function/index.html#static-function-createRewardTransaction",
+    "<span>createRewardTransaction</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/transaction.js</span>",
+    "function"
   ],
   [
     "@leofcoin/lib/src/index.js~errors",
@@ -78,40 +96,10 @@ window.esdocSearchIndex = [
     "variable"
   ],
   [
-    "@leofcoin/lib/src/block.js~lastblock",
-    "function/index.html#static-function-lastBlock",
-    "<span>lastBlock</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/block.js</span>",
-    "function"
-  ],
-  [
-    "@leofcoin/lib/src/block.js~longestchain",
-    "function/index.html#static-function-longestChain",
-    "<span>longestChain</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/block.js</span>",
-    "function"
-  ],
-  [
     "@leofcoin/lib/src/params.js~network",
     "variable/index.html#static-variable-network",
     "<span>network</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/params.js</span>",
     "variable"
-  ],
-  [
-    "@leofcoin/lib/src/block.js~newblock",
-    "function/index.html#static-function-newBlock",
-    "<span>newBlock</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/block.js</span>",
-    "function"
-  ],
-  [
-    "@leofcoin/lib/src/block.js~newgenesisdagnode",
-    "function/index.html#static-function-newGenesisDAGNode",
-    "<span>newGenesisDAGNode</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/block.js</span>",
-    "function"
-  ],
-  [
-    "@leofcoin/lib/src/block.js~nextblock",
-    "function/index.html#static-function-nextBlock",
-    "<span>nextBlock</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/block.js</span>",
-    "function"
   ],
   [
     "@leofcoin/lib/src/params.js~reward",
@@ -420,6 +408,30 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
+    "src/block.js~block#blockhash",
+    "class/src/block.js~Block.html#instance-member-blockHash",
+    "src/block.js~Block#blockHash",
+    "member"
+  ],
+  [
+    "src/block.js~block#constructor",
+    "class/src/block.js~Block.html#instance-constructor-constructor",
+    "src/block.js~Block#constructor",
+    "method"
+  ],
+  [
+    "src/block.js~block#goodblock",
+    "class/src/block.js~Block.html#instance-method-goodBlock",
+    "src/block.js~Block#goodBlock",
+    "method"
+  ],
+  [
+    "src/block.js~block#newgenesisdagnode",
+    "class/src/block.js~Block.html#instance-method-newGenesisDAGNode",
+    "src/block.js~Block#newGenesisDAGNode",
+    "method"
+  ],
+  [
     "src/chain.js",
     "file/src/chain.js.html",
     "src/chain.js",
@@ -438,10 +450,22 @@ window.esdocSearchIndex = [
     "member"
   ],
   [
+    "src/chain.js~chain#consensussubsidy",
+    "class/src/chain.js~Chain.html#instance-method-consensusSubsidy",
+    "src/chain.js~Chain#consensusSubsidy",
+    "method"
+  ],
+  [
     "src/chain.js~chain#constructor",
     "class/src/chain.js~Chain.html#instance-constructor-constructor",
     "src/chain.js~Chain#constructor",
     "method"
+  ],
+  [
+    "src/chain.js~chain#data",
+    "class/src/chain.js~Chain.html#instance-member-data",
+    "src/chain.js~Chain#data",
+    "member"
   ],
   [
     "src/chain.js~chain#difficulty",
@@ -492,6 +516,18 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/chain.js~chain#lastblock",
+    "class/src/chain.js~Chain.html#instance-method-lastBlock",
+    "src/chain.js~Chain#lastBlock",
+    "method"
+  ],
+  [
+    "src/chain.js~chain#longestchain",
+    "class/src/chain.js~Chain.html#instance-method-longestChain",
+    "src/chain.js~Chain#longestChain",
+    "method"
+  ],
+  [
     "src/chain.js~chain#median",
     "class/src/chain.js~Chain.html#instance-method-median",
     "src/chain.js~Chain#median",
@@ -502,6 +538,18 @@ window.esdocSearchIndex = [
     "class/src/chain.js~Chain.html#instance-get-mempool",
     "src/chain.js~Chain#mempool",
     "member"
+  ],
+  [
+    "src/chain.js~chain#newblock",
+    "class/src/chain.js~Chain.html#instance-method-newBlock",
+    "src/chain.js~Chain#newBlock",
+    "method"
+  ],
+  [
+    "src/chain.js~chain#nextblock",
+    "class/src/chain.js~Chain.html#instance-method-nextBlock",
+    "src/chain.js~Chain#nextBlock",
+    "method"
   ],
   [
     "src/chain.js~chain#nextblocktransactions",
@@ -612,12 +660,6 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/transaction.js~transaction#consensussubsidy",
-    "class/src/transaction.js~Transaction.html#instance-method-consensusSubsidy",
-    "src/transaction.js~Transaction#consensusSubsidy",
-    "method"
-  ],
-  [
     "src/transaction.js~transaction#constructor",
     "class/src/transaction.js~Transaction.html#instance-constructor-constructor",
     "src/transaction.js~Transaction#constructor",
@@ -630,28 +672,10 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/transaction.js~transaction#createrewardtransaction",
-    "class/src/transaction.js~Transaction.html#instance-method-createRewardTransaction",
-    "src/transaction.js~Transaction#createRewardTransaction",
-    "method"
-  ],
-  [
-    "src/transaction.js~transaction#getunspentforaddress",
-    "class/src/transaction.js~Transaction.html#instance-member-getUnspentForAddress",
-    "src/transaction.js~Transaction#getUnspentForAddress",
-    "member"
-  ],
-  [
     "src/transaction.js~transaction#isvalid",
     "class/src/transaction.js~Transaction.html#instance-member-isValid",
     "src/transaction.js~Transaction#isValid",
     "member"
-  ],
-  [
-    "src/transaction.js~transaction#newtransaction",
-    "class/src/transaction.js~Transaction.html#instance-method-newTransaction",
-    "src/transaction.js~Transaction#newTransaction",
-    "method"
   ],
   [
     "src/transaction.js~transaction#transactionhash",

@@ -1,20 +1,54 @@
 import Validator from './validate.js'
-import Chain from './chain'
 import Errors from './errors.js'
 import Hash from './hash.js'
 import { randomBytes } from 'crypto'
 import MultiWallet from '@leofcoin/multi-wallet'
-import { network, consensusSubsidyInterval, reward } from './params.js';
+import { network, reward } from './params.js';
 import * as ipldLfcTx from 'ipld-lfc-tx';
 
 const { LFCTx, util } = ipldLfcTx
+
+/**
+ * Create transaction
+ *
+ * @param inputs
+ * @param outputs
+ * @param reward
+ * @return {{id: string, reward: boolean, inputs: *, outputs: *, hash: string}}
+ */
+const newTransaction = async (inputs, outputs, reward = null) => {
+  try {
+    const tx = new LFCTx({
+      id: randomBytes(32).toString('hex'),
+      time: Math.floor(new Date().getTime() / 1000),
+      reward,
+      outputs,
+      inputs
+    });
+    // const cid = await util.cid(tx.serialize())
+    // await global.ipfs.dag.put(tx, {format: util.codec, hashAlg: util.defaultHashAlg, version: 1, baseFormat: 'base58btc'})
+    return tx
+  } catch (e) {
+    throw e
+  }
+}
+
+/**
+ * Create reward transaction for block mining
+ *
+ * @param {string} address
+ * @param {number} height
+ * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}
+ */
+export const createRewardTransaction = async (address, amount) => {
+  return newTransaction([], [{index: 0, amount, address}], 'mined');
+}
 
 
 export default class Transaction {
   constructor() {
     this.validator = new Validator()
     this.isValid = this.validator.isValid
-    this.getUnspentForAddress = new Chain().getUnspentForAddress
     this.TransactionError = new Errors().TransactionError
     const hash = new Hash()
     this.transactionInputHash = hash.transactionInputHash
@@ -96,55 +130,6 @@ export default class Transaction {
   }
   
   /**
-   * Create transaction
-   *
-   * @param inputs
-   * @param outputs
-   * @param reward
-   * @return {{id: string, reward: boolean, inputs: *, outputs: *, hash: string}}
-   */
-  async newTransaction(inputs, outputs, reward = null) {
-  	try {
-  		const tx = new LFCTx({
-  			id: randomBytes(32).toString('hex'),
-  			time: Math.floor(new Date().getTime() / 1000),
-  			reward,
-  			outputs,
-  			inputs
-  		});
-  		// const cid = await util.cid(tx.serialize())
-  		// await global.ipfs.dag.put(tx, {format: util.codec, hashAlg: util.defaultHashAlg, version: 1, baseFormat: 'base58btc'})
-  		return tx
-  	} catch (e) {
-  		throw e
-  	}
-  }
-  
-  /**
-   * @param {number} height
-   */
-  consensusSubsidy(height) {
-  	const quarterlings = height / consensusSubsidyInterval;
-  	if (quarterlings >= 256) {
-  		return 0;
-  	}
-  	//subsidy is lowered by 12.5 %, approx every year
-  	const minus = quarterlings >= 1 ? (quarterlings * (reward / 256)) : 0;
-  	return reward - minus;
-  }
-  
-  /**
-   * Create reward transaction for block mining
-   *
-   * @param {string} address
-   * @param {number} height
-   * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}
-   */
-  async createRewardTransaction(address, height) {
-  	return this.newTransaction([], [{index: 0, amount: this.consensusSubsidy(height), address}], 'mined');
-  };
-  
-  /**
    * Verify signature
    *
    * @param {string} address - signer address
@@ -184,9 +169,9 @@ export default class Transaction {
    * @param amount
    * @return {id, reward, inputs, outputs, hash,}
    */
-  async buildTransaction(wallet, toAddress, amount) {
+  async buildTransaction(wallet, toAddress, amount, unspent) {
   	let inputsAmount = 0;
-  	const unspent = await this.getUnspentForAddress(wallet.address);
+  	// const unspent = await this.getUnspentForAddress(wallet.address);
   	const inputsRaw = unspent.filter(i => {
   		const more = inputsAmount < amount;
   		if (more) inputsAmount += i.amount;

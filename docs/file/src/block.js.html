@@ -29,16 +29,14 @@
 <nav class="navigation" data-ice="nav"><div>
   <ul>
     
-  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/chain.js~Chain.html">Chain</a></span></span></li>
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/block.js~Block.html">Block</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/chain.js~Chain.html">Chain</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors.js~Errors.html">Errors</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/hash.js~Hash.html">Hash</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/validate.js~Validate.html">Validate</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-lastBlock">lastBlock</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-longestChain">longestChain</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newBlock">newBlock</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newGenesisDAGNode">newGenesisDAGNode</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-nextBlock">nextBlock</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-createRewardTransaction">createRewardTransaction</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-block">block</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-hash">hash</a></span></span></li>
@@ -63,166 +61,44 @@ import ipldLfc from &apos;ipld-lfc&apos;;
 
 const { LFCNode } = ipldLfc
 
-const createRewardTransaction = new Transaction().createRewardTransaction
-const blockHash = new Hash().blockHash
 
-const filterPeers = (peers, localPeer) =&gt; {
-  const set = []
-  return peers.reduce((p, c) =&gt; {
-    if (set.indexOf(c.peer) === -1 &amp;&amp; c.peer !== localPeer) {
-      set.push(c.peer)
-      p.push(c)
-    }
-    return p
-  }, [])
-}
 
-export const longestChain = () =&gt; new Promise(async (resolve, reject) =&gt; {
-  
-  try {
-    let peers = await ipfs.swarm.peers()
-    console.log(peers);
-    peers = await filterPeers(peers, globalThis.peerId)
-    console.log(peers);
-    // if (peers.length &lt; 2) return setTimeout(async () =&gt; {
-    //   const res = await longestChain()
-    //   resolve(res)
-    // }, 100);
-    
-    const set = []
-    for (const {peer} of peers) {
-      const chunks = []
-      try {
-        for await (const chunk of ipfs.name.resolve(peer)) {
-          chunks.push(chunk)
-        }
-      } catch (e) {
-        console.warn(e)
-      }
-      if (chunks.length &gt; 0) set.push({peer, path: chunks});
-    }
-    const _peers = []
-    let _blocks = []
-    for (const {peer, path} of set) {    
-      if (_peers.indexOf(peer) === -1) {
-        _peers.push(peer)
-        const block = await leofcoin.block.dag.get(path[0] || path)      
-        _blocks.push({block, path: path[0] || path})        
-      }        
-    }
-    const localIndex = await chainStore.get(&apos;localIndex&apos;)
-    const localHash = await chainStore.get(&apos;localBlock&apos;)
-    console.log({localHash});
-    const history = {}
-    _blocks = _blocks.reduce((set, {block, path}) =&gt; {
-      if (set.block.index &lt; block.index) {
-        history[set.block.index] = set;
-        set.block = block
-        set.hash = path.replace(&apos;/ipfs/&apos;, &apos;&apos;)
-        set.seen = 1
-      } else if (set.block.index === block.index) {
-        set.seen = Number(set.seen) + 1
-      }
-      return set
-    }, {block: { index: localIndex }, hash: localHash, seen: 0})
-    // temp 
-    // if (_blocks.seen &lt; 2) {
-    //   _blocks = history[_blocks.block.index - 1]
-    // 
-    // }
-    // const localIndex = await chainStore.get(&apos;localIndex&apos;)
-    // const localHash = await chainStore.get(&apos;localBlock&apos;)
-    return resolve({index: _blocks.block.index, hash: _blocks.hash})
-    
-  } catch (e) {
-    console.warn(e);
-    debug(e)
-    reject(e)
+export default class Block {
+  constructor() {
+    this.blockHash = new Hash().blockHash
   }
-});
-
-export const lastBlock = () =&gt; new Promise(async (resolve, reject) =&gt; {
-  const result = await longestChain();
   
-  resolve(result); // retrieve links
-});
-
-/**
-	 * Create new block
-	 *
-	 * @param {array} transactions
-	 * @param {object} previousBlock
-	 * @param {string} address
-	 * @return {index, prevHash, time, transactions, nonce}
-	 */
-export const newBlock = async ({transactions = [], previousBlock, address}) =&gt; {
-	const index = previousBlock.index + 1
-	const minedTx = await createRewardTransaction(address, index)
-	transactions.push(minedTx);
-	this.data = {
-		index,
-		prevHash: previousBlock.hash,
-		time: Math.floor(new Date().getTime() / 1000),
-		transactions,
-		nonce: 0
-	};
-	this.data.hash = await blockHash(this.data);
-	return this.data;
-}
-
-export const nextBlock = async address =&gt; {
-  let transactions;
-  let previousBlock;
-  try {
-    previousBlock = await lastBlock()
-    
-    if (previousBlock.index &gt; chain.length - 1) {
-      await leofcoin.chain.sync()
-      previousBlock = await lastBlock()
-    }
-    if (!previousBlock.index) previousBlock = chain[chain.length - 1]
-    
-    transactions = await nextBlockTransactions();
-  } catch (e) {
-    debug(e)
-    previousBlock = GENESISBLOCK
-    previousBlock.hash = genesisCID
-    transactions = await nextBlockTransactions();
-  } finally {
-    // console.log(transactions, previousBlock, address);
-    return await new DAGBlock(global.ipfs).newBlock({transactions, previousBlock, address});
+  
+  goodBlock(block, difficulty){
+    return new Promise(async (resolve, reject) =&gt; {
+      block.hash = await this.blockHash(block);
+      if (parseInt(block.hash.substring(0, 8), 16) &gt;= difficulty) {
+        block.nonce++
+        block = await this.goodBlock(block, difficulty)
+      }      
+      resolve(block)
+    })
   }
-};
-
-const goodBlock = (block, difficulty) =&gt; new Promise(async (resolve, reject) =&gt; {
-  // return setTimeout(async () =&gt; {
+  
+  /**
+   * Create a new genesis block
+   */
+  async newGenesisDAGNode(difficulty = 1, address = Buffer.alloc(32).toString(&apos;hex&apos;)) {
+    let block = {
+      index: 0,
+      prevHash: Buffer.alloc(47).toString(&apos;hex&apos;),
+      time: Math.floor(new Date().getTime() / 1000),
+      transactions: [
+        // ms.unspent(network, [], wallet.account()).create(index: 0, amount: consensusSubsidy(0), address)
+      ],
+      nonce: 0
+    }
     block.hash = await blockHash(block);
-    if (parseInt(block.hash.substring(0, 8), 16) &gt;= difficulty) {
-      block.nonce++
-      block = await goodBlock(block, difficulty)
-    }      
-    resolve(block)
-  // }, 500);
-})
-
-/**
- * Create a new genesis block
- */
-export const newGenesisDAGNode = async (difficulty = 1, address = Buffer.alloc(32).toString(&apos;hex&apos;)) =&gt; {
-  let block = {
-    index: 0,
-    prevHash: Buffer.alloc(47).toString(&apos;hex&apos;),
-    time: Math.floor(new Date().getTime() / 1000),
-    transactions: [
-      // ms.unspent(network, [], wallet.account()).create(index: 0, amount: consensusSubsidy(0), address)
-    ],
-    nonce: 0
+    block = await this.goodBlock(block, difficulty)
+    console.log({block});
+    const node = new LFCNode(block)
+    return node;
   }
-  block.hash = await blockHash(block);
-  block = await goodBlock(block, difficulty)
-  console.log({block});
-  const node = new LFCNode(block)
-  return node;
 }</code></pre>
 
 </div>

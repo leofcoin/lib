@@ -567,7 +567,7 @@
     "__docId__": 48,
     "kind": "file",
     "name": "src/block.js",
-    "content": "import { GENESISBLOCK, genesisCID } from './params';\r\nimport Transaction from './transaction'\r\nimport Hash from './hash';\r\nimport ipldLfc from 'ipld-lfc';\r\n\r\nconst { LFCNode } = ipldLfc\r\n\r\nconst createRewardTransaction = new Transaction().createRewardTransaction\r\nconst blockHash = new Hash().blockHash\r\n\r\nconst filterPeers = (peers, localPeer) => {\r\n  const set = []\r\n  return peers.reduce((p, c) => {\r\n    if (set.indexOf(c.peer) === -1 && c.peer !== localPeer) {\r\n      set.push(c.peer)\r\n      p.push(c)\r\n    }\r\n    return p\r\n  }, [])\r\n}\r\n\r\nexport const longestChain = () => new Promise(async (resolve, reject) => {\r\n  \r\n  try {\r\n    let peers = await ipfs.swarm.peers()\r\n    console.log(peers);\r\n    peers = await filterPeers(peers, globalThis.peerId)\r\n    console.log(peers);\r\n    // if (peers.length < 2) return setTimeout(async () => {\r\n    //   const res = await longestChain()\r\n    //   resolve(res)\r\n    // }, 100);\r\n    \r\n    const set = []\r\n    for (const {peer} of peers) {\r\n      const chunks = []\r\n      try {\r\n        for await (const chunk of ipfs.name.resolve(peer)) {\r\n          chunks.push(chunk)\r\n        }\r\n      } catch (e) {\r\n        console.warn(e)\r\n      }\r\n      if (chunks.length > 0) set.push({peer, path: chunks});\r\n    }\r\n    const _peers = []\r\n    let _blocks = []\r\n    for (const {peer, path} of set) {    \r\n      if (_peers.indexOf(peer) === -1) {\r\n        _peers.push(peer)\r\n        const block = await leofcoin.block.dag.get(path[0] || path)      \r\n        _blocks.push({block, path: path[0] || path})        \r\n      }        \r\n    }\r\n    const localIndex = await chainStore.get('localIndex')\r\n    const localHash = await chainStore.get('localBlock')\r\n    console.log({localHash});\r\n    const history = {}\r\n    _blocks = _blocks.reduce((set, {block, path}) => {\r\n      if (set.block.index < block.index) {\r\n        history[set.block.index] = set;\r\n        set.block = block\r\n        set.hash = path.replace('/ipfs/', '')\r\n        set.seen = 1\r\n      } else if (set.block.index === block.index) {\r\n        set.seen = Number(set.seen) + 1\r\n      }\r\n      return set\r\n    }, {block: { index: localIndex }, hash: localHash, seen: 0})\r\n    // temp \r\n    // if (_blocks.seen < 2) {\r\n    //   _blocks = history[_blocks.block.index - 1]\r\n    // \r\n    // }\r\n    // const localIndex = await chainStore.get('localIndex')\r\n    // const localHash = await chainStore.get('localBlock')\r\n    return resolve({index: _blocks.block.index, hash: _blocks.hash})\r\n    \r\n  } catch (e) {\r\n    console.warn(e);\r\n    debug(e)\r\n    reject(e)\r\n  }\r\n});\r\n\r\nexport const lastBlock = () => new Promise(async (resolve, reject) => {\r\n  const result = await longestChain();\r\n  \r\n  resolve(result); // retrieve links\r\n});\r\n\r\n/**\r\n\t * Create new block\r\n\t *\r\n\t * @param {array} transactions\r\n\t * @param {object} previousBlock\r\n\t * @param {string} address\r\n\t * @return {index, prevHash, time, transactions, nonce}\r\n\t */\r\nexport const newBlock = async ({transactions = [], previousBlock, address}) => {\r\n\tconst index = previousBlock.index + 1\r\n\tconst minedTx = await createRewardTransaction(address, index)\r\n\ttransactions.push(minedTx);\r\n\tthis.data = {\r\n\t\tindex,\r\n\t\tprevHash: previousBlock.hash,\r\n\t\ttime: Math.floor(new Date().getTime() / 1000),\r\n\t\ttransactions,\r\n\t\tnonce: 0\r\n\t};\r\n\tthis.data.hash = await blockHash(this.data);\r\n\treturn this.data;\r\n}\r\n\r\nexport const nextBlock = async address => {\r\n  let transactions;\r\n  let previousBlock;\r\n  try {\r\n    previousBlock = await lastBlock()\r\n    \r\n    if (previousBlock.index > chain.length - 1) {\r\n      await leofcoin.chain.sync()\r\n      previousBlock = await lastBlock()\r\n    }\r\n    if (!previousBlock.index) previousBlock = chain[chain.length - 1]\r\n    \r\n    transactions = await nextBlockTransactions();\r\n  } catch (e) {\r\n    debug(e)\r\n    previousBlock = GENESISBLOCK\r\n    previousBlock.hash = genesisCID\r\n    transactions = await nextBlockTransactions();\r\n  } finally {\r\n    // console.log(transactions, previousBlock, address);\r\n    return await new DAGBlock(global.ipfs).newBlock({transactions, previousBlock, address});\r\n  }\r\n};\r\n\r\nconst goodBlock = (block, difficulty) => new Promise(async (resolve, reject) => {\r\n  // return setTimeout(async () => {\r\n    block.hash = await blockHash(block);\r\n    if (parseInt(block.hash.substring(0, 8), 16) >= difficulty) {\r\n      block.nonce++\r\n      block = await goodBlock(block, difficulty)\r\n    }      \r\n    resolve(block)\r\n  // }, 500);\r\n})\r\n\r\n/**\r\n * Create a new genesis block\r\n */\r\nexport const newGenesisDAGNode = async (difficulty = 1, address = Buffer.alloc(32).toString('hex')) => {\r\n  let block = {\r\n    index: 0,\r\n    prevHash: Buffer.alloc(47).toString('hex'),\r\n    time: Math.floor(new Date().getTime() / 1000),\r\n    transactions: [\r\n      // ms.unspent(network, [], wallet.account()).create(index: 0, amount: consensusSubsidy(0), address)\r\n    ],\r\n    nonce: 0\r\n  }\r\n  block.hash = await blockHash(block);\r\n  block = await goodBlock(block, difficulty)\r\n  console.log({block});\r\n  const node = new LFCNode(block)\r\n  return node;\r\n}",
+    "content": "import { GENESISBLOCK, genesisCID } from './params';\r\nimport Transaction from './transaction'\r\nimport Hash from './hash';\r\nimport ipldLfc from 'ipld-lfc';\r\n\r\nconst { LFCNode } = ipldLfc\r\n\r\n\r\n\r\nexport default class Block {\r\n  constructor() {\r\n    this.blockHash = new Hash().blockHash\r\n  }\r\n  \r\n  \r\n  goodBlock(block, difficulty){\r\n    return new Promise(async (resolve, reject) => {\r\n      block.hash = await this.blockHash(block);\r\n      if (parseInt(block.hash.substring(0, 8), 16) >= difficulty) {\r\n        block.nonce++\r\n        block = await this.goodBlock(block, difficulty)\r\n      }      \r\n      resolve(block)\r\n    })\r\n  }\r\n  \r\n  /**\r\n   * Create a new genesis block\r\n   */\r\n  async newGenesisDAGNode(difficulty = 1, address = Buffer.alloc(32).toString('hex')) {\r\n    let block = {\r\n      index: 0,\r\n      prevHash: Buffer.alloc(47).toString('hex'),\r\n      time: Math.floor(new Date().getTime() / 1000),\r\n      transactions: [\r\n        // ms.unspent(network, [], wallet.account()).create(index: 0, amount: consensusSubsidy(0), address)\r\n      ],\r\n      nonce: 0\r\n    }\r\n    block.hash = await blockHash(block);\r\n    block = await this.goodBlock(block, difficulty)\r\n    console.log({block});\r\n    const node = new LFCNode(block)\r\n    return node;\r\n  }\r\n}",
     "static": true,
     "longname": "D:/Workspace/leofcoin/lib/src/block.js",
     "access": "public",
@@ -597,61 +597,167 @@
   },
   {
     "__docId__": 50,
-    "kind": "variable",
-    "name": "createRewardTransaction",
+    "kind": "class",
+    "name": "Block",
     "memberof": "src/block.js",
     "static": true,
-    "longname": "src/block.js~createRewardTransaction",
+    "longname": "src/block.js~Block",
     "access": "public",
-    "export": false,
+    "export": true,
     "importPath": "@leofcoin/lib/src/block.js",
-    "importStyle": null,
+    "importStyle": "Block",
     "description": null,
-    "lineNumber": 8,
+    "lineNumber": 10,
     "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    },
-    "ignore": true
+    "interface": false
   },
   {
     "__docId__": 51,
-    "kind": "variable",
-    "name": "blockHash",
-    "memberof": "src/block.js",
-    "static": true,
-    "longname": "src/block.js~blockHash",
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/block.js~Block",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/block.js~Block#constructor",
     "access": "public",
-    "export": false,
-    "importPath": "@leofcoin/lib/src/block.js",
-    "importStyle": null,
     "description": null,
-    "lineNumber": 9,
+    "lineNumber": 11,
+    "undocument": true
+  },
+  {
+    "__docId__": 52,
+    "kind": "member",
+    "name": "blockHash",
+    "memberof": "src/block.js~Block",
+    "static": false,
+    "longname": "src/block.js~Block#blockHash",
+    "access": "public",
+    "description": null,
+    "lineNumber": 12,
     "undocument": true,
     "type": {
       "types": [
         "*"
       ]
+    }
+  },
+  {
+    "__docId__": 53,
+    "kind": "method",
+    "name": "goodBlock",
+    "memberof": "src/block.js~Block",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/block.js~Block#goodBlock",
+    "access": "public",
+    "description": null,
+    "lineNumber": 16,
+    "undocument": true,
+    "params": [
+      {
+        "name": "block",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "difficulty",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 54,
+    "kind": "method",
+    "name": "newGenesisDAGNode",
+    "memberof": "src/block.js~Block",
+    "generator": false,
+    "async": true,
+    "static": false,
+    "longname": "src/block.js~Block#newGenesisDAGNode",
+    "access": "public",
+    "description": "Create a new genesis block",
+    "lineNumber": 30,
+    "params": [
+      {
+        "name": "difficulty",
+        "optional": true,
+        "types": [
+          "number"
+        ],
+        "defaultRaw": 1,
+        "defaultValue": "1"
+      },
+      {
+        "name": "address",
+        "optional": true,
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 55,
+    "kind": "file",
+    "name": "src/chain.js",
+    "content": "import { GENESISBLOCK, genesisCID } from './params'\r\nimport Validator from './validate'\r\nimport { createRewardTransaction } from './transaction'\r\nimport Hash from './hash'\r\nimport { consensusSubsidyInterval, reward } from './params.js';\r\n\r\nconst invalidTransactions = {};\r\n\r\nglobalThis.chain = globalThis.chain || [\r\n  GENESISBLOCK\r\n];\r\n\r\nglobalThis.mempool = globalThis.mempool || [];\r\nglobalThis.blockHashSet = globalThis.blockHashSet || [];\r\n\r\nconst filterPeers = (peers, localPeer) => {\r\n  const set = []\r\n  return peers.reduce((p, c) => {\r\n    if (set.indexOf(c.peer) === -1 && c.peer !== localPeer) {\r\n      set.push(c.peer)\r\n      p.push(c)\r\n    }\r\n    return p\r\n  }, [])\r\n}\r\n\r\nexport default class Chain extends Hash{\r\n  constructor() {\r\n    super()\r\n    this.validateTransaction = new Validator().validateTransaction\r\n  }\r\n  \r\n  get chain() { return globalThis.chain }\r\n  \r\n  get mempool() { return globalThis.mempool }\r\n  \r\n  get blockHashSet() { return globalThis.blockHashSet }\r\n  \r\n  // TODO: needs 3 nodes running\r\n  invalidTransaction(data) {\r\n    // console.log(data.data.toString());\r\n    data = JSON.parse(data.data.toString());\r\n    if (!invalidTransactions[data.tx]) invalidTransactions[data.tx] = 0;\r\n    ++invalidTransactions[data.tx]\r\n    const count = invalidTransactions[data.tx];\r\n    if (count === 3) {\r\n      const memIndex = mempool.indexOf(data)\r\n      mempool.splice(memIndex, 1)\r\n      delete invalidTransactions[data.tx];\r\n    }\r\n  }\r\n  \r\n  /**\r\n   * @param {number} height\r\n   */\r\n  consensusSubsidy(height) {\r\n    console.log(height);\r\n  \tconst quarterlings = height / consensusSubsidyInterval;\r\n  \tif (quarterlings >= 256) {\r\n  \t\treturn 0;\r\n  \t}\r\n  \t//subsidy is lowered by 12.5 %, approx every year\r\n  \tconst minus = quarterlings >= 1 ? (quarterlings * (reward / 256)) : 0;\r\n  \treturn reward - minus;\r\n  }\r\n  \r\n  async getTransactions(withMempool = true, index = 0) {\r\n    const _chain = [...chain];\r\n    if (index === chain.length - 1) return []\r\n    _chain.slice(index + 1, chain.length - 1)\r\n  \tlet transactions = _chain.reduce((transactions, block) => [ ...transactions, ...block.transactions], []);\r\n  \tif (withMempool) transactions = transactions.concat(mempool);\r\n    let _transactions = []\r\n    // TODO: deprecated, get/put should be handled in core\r\n    for (const tx of transactions) {\r\n      const {multihash} = tx\r\n      if (multihash) {\r\n        let value;\r\n        if (leofcoin.transaction.dag) value = await leofcoin.transaction.dag.get(multihash)\r\n        _transactions.push(value)\r\n      } else {\r\n        _transactions.push(tx)\r\n      }\r\n      \r\n    }\r\n    return _transactions\r\n  };\r\n  \r\n  async getTransactionsForAddress(address, index = 0) {\r\n    const transactions = await this.getTransactions(false, index);\r\n  \treturn transactions.filter(tx => tx.inputs.find(i => i.address === address) ||\r\n    tx.outputs.find(o => o.address === address));\r\n  };\r\n  \r\n  /**\r\n   * \r\n   * @param {string} withMempool - with or without mempool inclusion\r\n   * @param {number} index - block height to start from\r\n   */\r\n  async getUnspent(withMempool = false, index = 0) {\r\n  \tconst transactions = await this.getTransactions(withMempool, index);\r\n  \t// Find all inputs with their tx ids\r\n  \tconst inputs = transactions.reduce((inputs, tx) => inputs.concat(tx.inputs), []);\r\n  \r\n  \t// Find all outputs with their tx ids\r\n  \tconst outputs = transactions.reduce((outputs, tx) =>\r\n  \t\toutputs.concat(tx.outputs.map(output => Object.assign({}, output, {tx: tx.id}))), []);\r\n  \r\n  \t// Figure out which outputs are unspent\r\n  \tconst unspent = outputs.filter(output =>\r\n  \t\ttypeof inputs.find(input => input.tx === output.tx && input.index === output.index && input.amount === output.amount) === 'undefined');\r\n  \treturn unspent;\r\n  }\r\n  \r\n  /**\r\n   * @param {string} address - wallet address\r\n   * @param {number} index - block height to start from\r\n   */\r\n  async getUnspentForAddress(address = null, index = 0) {\r\n    const unspent = await this.getUnspent(true, index)\r\n  \treturn unspent.filter(u => u.address === address);\r\n  }\r\n  \r\n  /**\r\n   * @param {string} address - wallet address\r\n   */\r\n  async getBalanceForAddress(address = null, index) {\r\n    // debug(`Getting balance for ${address}`)\r\n    const unspent = await this.getUnspentForAddress(address, index)\r\n    const amount = unspent.reduce((acc, u) => acc + u.amount , 0);\r\n    // debug(`Got ${amount} for ${address}`)\r\n  \treturn amount\r\n  }\r\n  \r\n  /**\r\n   * @deprecated Use getTransactionsForAddress(addr, index) instead\r\n   *\r\n   * @param {string} address - wallet address\r\n   * @param {number} index - block height to start from\r\n   * \r\n   * @return {number} balance\r\n   */\r\n  async getBalanceForAddressAfter(address = null, index = 0) {\r\n    // debug(`Getting balance for ${address} @${index}`)\r\n    const unspent = await this.getUnspentForAddress(address, index)\r\n    const amount = unspent.reduce((acc, u) => acc + u.amount , 0);\r\n    // debug(`Got ${amount} for ${address} @${index}`)\r\n    return amount\r\n  }\r\n  \r\n  median(array) {\r\n    array.sort((a,b) => a - b)\r\n  \r\n    var half = Math.floor(array.length / 2);\r\n  \r\n    if(array.length % 2)\r\n      return array[half];\r\n    else\r\n      return (array[half - 1] + array[half]) / 2.0;\r\n  }\r\n  \r\n  difficulty() {\r\n  \t// TODO: lower difficulty when transactionpool contain more then 500 tx ?\r\n  \t// TODO: raise difficulty when pool is empty\r\n  \r\n    // or\r\n  \r\n    // TODO: implement iTX (instant transaction)\r\n    // iTX is handled by multiple peers, itx is chained together by their hashes\r\n    // by handlng a tx as itx the block well be converted into a iRootBlock\r\n    // this results into smaller chains (tangles, tails) which should improve\r\n    // resolving transactions, wallet amounts etc ...\r\n  \tconst start = chain.length >= 128 ? (chain.length - 128) : 0;\r\n  \tconst blocks = chain.slice(start, (chain.length - 1)).reverse();\r\n  \tconst stamps = [];\r\n  \tfor (var i = 0; i < blocks.length; i++) {\r\n  \t\tif (blocks[i + 1]) {\r\n  \t\t\tstamps.push(blocks[i].time - blocks[i + 1].time);\r\n  \t\t}\r\n  \t}\r\n  \tif (stamps.length === 0) {\r\n  \t\tstamps.push(10);\r\n  \t}\r\n  \tlet blocksMedian = this.median(stamps) || 10;\r\n    const offset = blocksMedian / 10\r\n     // offset for quick recovery\r\n  \tif (blocksMedian < 10) {\r\n  \t\tblocksMedian -= (offset / 2);\r\n  \t} else if (blocksMedian > 10) {\r\n  \t\tblocksMedian += (offset * 2);\r\n  \t}\r\n    if (blocksMedian < 0) blocksMedian = -blocksMedian\r\n    console.log(`Average Block Time: ${blocksMedian}`);\r\n    console.log(`Difficulty: ${10 / blocksMedian}`);\r\n  \treturn (1000 / (10 / blocksMedian));\r\n  };//10000\r\n  \r\n  \r\n  /**\r\n   * Get the transactions for the next Block\r\n   *\r\n   * @return {object} transactions\r\n   */\r\n  async nextBlockTransactions() {\r\n  \tconst unspent = await this.getUnspent(false);\r\n    console.log(unspent);\r\n  \treturn mempool.filter(async (transaction) => {\r\n      console.log(transaction);\r\n      const multihash = transaction.multihash\r\n      const value = await leofcoin.transaction.get(multihash)\r\n      console.log({value});\r\n  \t\ttry {\r\n  \t\t\tawait this.validateTransaction(multihash, value, unspent);\r\n        return transaction\r\n  \t\t} catch (e) {\r\n        globalThis.ipfs.pubsub.publish('invalid-transaction', Buffer.from(JSON.stringify(transaction)));\r\n  \t\t\tconsole.error(e);\r\n  \t\t}\r\n  \t});\r\n  }  \r\n  \r\n  longestChain() {\r\n    return new Promise(async (resolve, reject) => {\r\n      try {\r\n        let peers = await globalThis.ipfs.swarm.peers()\r\n        console.log(peers);\r\n        peers = await filterPeers(peers, globalThis.peerId)\r\n        console.log(peers);\r\n        // if (peers.length < 2) return setTimeout(async () => {\r\n        //   const res = await longestChain()\r\n        //   resolve(res)\r\n        // }, 100);\r\n        \r\n        const set = []\r\n        for (const {peer} of peers) {\r\n          const chunks = []\r\n          try {\r\n            for await (const chunk of ipfs.name.resolve(peer)) {\r\n              chunks.push(chunk)\r\n            }\r\n          } catch (e) {\r\n            console.warn(e)\r\n          }\r\n          if (chunks.length > 0) set.push({peer, path: chunks});\r\n        }\r\n        const _peers = []\r\n        let _blocks = []\r\n        for (const {peer, path} of set) {    \r\n          if (_peers.indexOf(peer) === -1) {\r\n            _peers.push(peer)\r\n            const block = await leofcoin.block.dag.get(path[0] || path)      \r\n            _blocks.push({block, path: path[0] || path})        \r\n          }        \r\n        }\r\n        const localIndex = await chainStore.get('localIndex')\r\n        const localHash = await chainStore.get('localBlock')\r\n        console.log({localHash});\r\n        const history = {}\r\n        _blocks = _blocks.reduce((set, {block, path}) => {\r\n          if (set.block.index < block.index) {\r\n            history[set.block.index] = set;\r\n            set.block = block\r\n            set.hash = path.replace('/ipfs/', '')\r\n            set.seen = 1\r\n          } else if (set.block.index === block.index) {\r\n            set.seen = Number(set.seen) + 1\r\n          }\r\n          return set\r\n        }, {block: { index: localIndex }, hash: localHash, seen: 0})\r\n        // temp \r\n        // if (_blocks.seen < 2) {\r\n        //   _blocks = history[_blocks.block.index - 1]\r\n        // \r\n        // }\r\n        // const localIndex = await chainStore.get('localIndex')\r\n        // const localHash = await chainStore.get('localBlock')\r\n        return resolve({index: _blocks.block.index, hash: _blocks.hash})\r\n        \r\n      } catch (e) {\r\n        console.warn(e);\r\n        debug(e)\r\n        reject(e)\r\n      }\r\n    })\r\n  }\r\n  \r\n  lastBlock() {\r\n    return new Promise(async (resolve, reject) => {\r\n      const result = await this.longestChain();\r\n      \r\n      resolve(result); // retrieve links\r\n    });\r\n  }\r\n  \r\n  \r\n  async nextBlock(address) {\r\n    console.log(address);\r\n    console.log({address});\r\n    let transactions;\r\n    let previousBlock;\r\n    try {\r\n      previousBlock = await this.lastBlock()\r\n      \r\n      if (previousBlock.index > chain.length - 1) {\r\n        await leofcoin.chain.sync()\r\n        previousBlock = await this.lastBlock()\r\n      }\r\n      if (!previousBlock.index) previousBlock = chain[chain.length - 1]\r\n      transactions = await this.nextBlockTransactions();\r\n    } catch (e) {\r\n      previousBlock = GENESISBLOCK\r\n      previousBlock.hash = genesisCID\r\n      transactions = await this.nextBlockTransactions();\r\n    } finally {\r\n      // console.log(transactions, previousBlock, address);\r\n      console.log({transactions});\r\n      return await this.newBlock({transactions, previousBlock, address});\r\n    }\r\n  }  \r\n  \r\n  /**\r\n  \t * Create new block\r\n  \t *\r\n  \t * @param {array} transactions\r\n  \t * @param {object} previousBlock\r\n  \t * @param {string} address\r\n  \t * @return {index, prevHash, time, transactions, nonce}\r\n  \t */\r\n  async newBlock({transactions = [], previousBlock, address}) {\r\n  \tconst index = previousBlock.index + 1\r\n  \tconst minedTx = await createRewardTransaction(address, this.consensusSubsidy(index))\r\n  \ttransactions.push(minedTx.toJSON());\r\n    console.log({transactions});\r\n  \tthis.data = {\r\n  \t\tindex,\r\n  \t\tprevHash: previousBlock.hash,\r\n  \t\ttime: Math.floor(new Date().getTime() / 1000),\r\n  \t\ttransactions,\r\n  \t\tnonce: 0\r\n  \t};\r\n    console.log({data: this.data});\r\n  \tthis.data.hash = await this.blockHash(this.data);\r\n    console.log({hash: this.data.hash});\r\n  \treturn this.data;\r\n  }\r\n}",
+    "static": true,
+    "longname": "D:/Workspace/leofcoin/lib/src/chain.js",
+    "access": "public",
+    "description": null,
+    "lineNumber": 1
+  },
+  {
+    "__docId__": 56,
+    "kind": "variable",
+    "name": "invalidTransactions",
+    "memberof": "src/chain.js",
+    "static": true,
+    "longname": "src/chain.js~invalidTransactions",
+    "access": "public",
+    "export": false,
+    "importPath": "@leofcoin/lib/src/chain.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 7,
+    "undocument": true,
+    "type": {
+      "types": [
+        "{}"
+      ]
     },
     "ignore": true
   },
   {
-    "__docId__": 52,
+    "__docId__": 57,
     "kind": "function",
     "name": "filterPeers",
-    "memberof": "src/block.js",
+    "memberof": "src/chain.js",
     "generator": false,
     "async": false,
     "static": true,
-    "longname": "src/block.js~filterPeers",
+    "longname": "src/chain.js~filterPeers",
     "access": "public",
     "export": false,
-    "importPath": "@leofcoin/lib/src/block.js",
+    "importPath": "@leofcoin/lib/src/chain.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 11,
+    "lineNumber": 16,
     "undocument": true,
     "params": [
       {
@@ -675,58 +781,542 @@
     "ignore": true
   },
   {
-    "__docId__": 53,
-    "kind": "function",
-    "name": "longestChain",
-    "memberof": "src/block.js",
-    "generator": false,
-    "async": false,
+    "__docId__": 58,
+    "kind": "class",
+    "name": "Chain",
+    "memberof": "src/chain.js",
     "static": true,
-    "longname": "src/block.js~longestChain",
+    "longname": "src/chain.js~Chain",
     "access": "public",
     "export": true,
-    "importPath": "@leofcoin/lib/src/block.js",
-    "importStyle": "{longestChain}",
+    "importPath": "@leofcoin/lib/src/chain.js",
+    "importStyle": "Chain",
     "description": null,
-    "lineNumber": 22,
+    "lineNumber": 27,
     "undocument": true,
-    "params": [],
+    "interface": false,
+    "extends": [
+      "src/hash.js~Hash"
+    ]
+  },
+  {
+    "__docId__": 59,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/chain.js~Chain#constructor",
+    "access": "public",
+    "description": null,
+    "lineNumber": 28,
+    "undocument": true
+  },
+  {
+    "__docId__": 60,
+    "kind": "member",
+    "name": "validateTransaction",
+    "memberof": "src/chain.js~Chain",
+    "static": false,
+    "longname": "src/chain.js~Chain#validateTransaction",
+    "access": "public",
+    "description": null,
+    "lineNumber": 30,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 61,
+    "kind": "get",
+    "name": "chain",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/chain.js~Chain#chain",
+    "access": "public",
+    "description": null,
+    "lineNumber": 33,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 62,
+    "kind": "get",
+    "name": "mempool",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/chain.js~Chain#mempool",
+    "access": "public",
+    "description": null,
+    "lineNumber": 35,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 63,
+    "kind": "get",
+    "name": "blockHashSet",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/chain.js~Chain#blockHashSet",
+    "access": "public",
+    "description": null,
+    "lineNumber": 37,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 64,
+    "kind": "method",
+    "name": "invalidTransaction",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/chain.js~Chain#invalidTransaction",
+    "access": "public",
+    "description": null,
+    "lineNumber": 40,
+    "undocument": true,
+    "params": [
+      {
+        "name": "data",
+        "types": [
+          "*"
+        ]
+      }
+    ],
     "return": null
   },
   {
-    "__docId__": 54,
-    "kind": "function",
-    "name": "lastBlock",
-    "memberof": "src/block.js",
+    "__docId__": 65,
+    "kind": "method",
+    "name": "consensusSubsidy",
+    "memberof": "src/chain.js~Chain",
     "generator": false,
     "async": false,
-    "static": true,
-    "longname": "src/block.js~lastBlock",
+    "static": false,
+    "longname": "src/chain.js~Chain#consensusSubsidy",
     "access": "public",
-    "export": true,
-    "importPath": "@leofcoin/lib/src/block.js",
-    "importStyle": "{lastBlock}",
-    "description": null,
-    "lineNumber": 86,
-    "undocument": true,
-    "params": [],
-    "return": null
+    "description": "",
+    "lineNumber": 56,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "height",
+        "description": ""
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
   },
   {
-    "__docId__": 55,
-    "kind": "function",
-    "name": "newBlock",
-    "memberof": "src/block.js",
+    "__docId__": 66,
+    "kind": "method",
+    "name": "getTransactions",
+    "memberof": "src/chain.js~Chain",
     "generator": false,
     "async": true,
-    "static": true,
-    "longname": "src/block.js~newBlock",
+    "static": false,
+    "longname": "src/chain.js~Chain#getTransactions",
     "access": "public",
-    "export": true,
-    "importPath": "@leofcoin/lib/src/block.js",
-    "importStyle": "{newBlock}",
-    "description": "Create new block",
+    "description": null,
+    "lineNumber": 67,
+    "undocument": true,
+    "params": [
+      {
+        "name": "withMempool",
+        "optional": true,
+        "types": [
+          "boolean"
+        ],
+        "defaultRaw": true,
+        "defaultValue": "true"
+      },
+      {
+        "name": "index",
+        "optional": true,
+        "types": [
+          "number"
+        ],
+        "defaultRaw": 0,
+        "defaultValue": "0"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 67,
+    "kind": "method",
+    "name": "getTransactionsForAddress",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": true,
+    "static": false,
+    "longname": "src/chain.js~Chain#getTransactionsForAddress",
+    "access": "public",
+    "description": null,
+    "lineNumber": 89,
+    "undocument": true,
+    "params": [
+      {
+        "name": "address",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "index",
+        "optional": true,
+        "types": [
+          "number"
+        ],
+        "defaultRaw": 0,
+        "defaultValue": "0"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 68,
+    "kind": "method",
+    "name": "getUnspent",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": true,
+    "static": false,
+    "longname": "src/chain.js~Chain#getUnspent",
+    "access": "public",
+    "description": "",
     "lineNumber": 100,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "withMempool",
+        "description": "with or without mempool inclusion"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "index",
+        "description": "block height to start from"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 69,
+    "kind": "method",
+    "name": "getUnspentForAddress",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": true,
+    "static": false,
+    "longname": "src/chain.js~Chain#getUnspentForAddress",
+    "access": "public",
+    "description": "",
+    "lineNumber": 119,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "address",
+        "description": "wallet address"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "index",
+        "description": "block height to start from"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 70,
+    "kind": "method",
+    "name": "getBalanceForAddress",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": true,
+    "static": false,
+    "longname": "src/chain.js~Chain#getBalanceForAddress",
+    "access": "public",
+    "description": "",
+    "lineNumber": 127,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "address",
+        "description": "wallet address"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 71,
+    "kind": "method",
+    "name": "getBalanceForAddressAfter",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": true,
+    "static": false,
+    "longname": "src/chain.js~Chain#getBalanceForAddressAfter",
+    "access": "public",
+    "description": "",
+    "lineNumber": 143,
+    "deprecated": "Use getTransactionsForAddress(addr, index) instead",
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "address",
+        "description": "wallet address"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "number"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "index",
+        "description": "block height to start from"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "number"
+      ],
+      "spread": false,
+      "description": "balance"
+    }
+  },
+  {
+    "__docId__": 72,
+    "kind": "method",
+    "name": "median",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/chain.js~Chain#median",
+    "access": "public",
+    "description": null,
+    "lineNumber": 151,
+    "undocument": true,
+    "params": [
+      {
+        "name": "array",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 73,
+    "kind": "method",
+    "name": "difficulty",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/chain.js~Chain#difficulty",
+    "access": "public",
+    "description": null,
+    "lineNumber": 162,
+    "undocument": true,
+    "params": [],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 74,
+    "kind": "method",
+    "name": "nextBlockTransactions",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": true,
+    "static": false,
+    "longname": "src/chain.js~Chain#nextBlockTransactions",
+    "access": "public",
+    "description": "Get the transactions for the next Block",
+    "lineNumber": 204,
+    "return": {
+      "nullable": null,
+      "types": [
+        "object"
+      ],
+      "spread": false,
+      "description": "transactions"
+    },
+    "params": []
+  },
+  {
+    "__docId__": 75,
+    "kind": "method",
+    "name": "longestChain",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/chain.js~Chain#longestChain",
+    "access": "public",
+    "description": null,
+    "lineNumber": 222,
+    "undocument": true,
+    "params": [],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 76,
+    "kind": "method",
+    "name": "lastBlock",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/chain.js~Chain#lastBlock",
+    "access": "public",
+    "description": null,
+    "lineNumber": 287,
+    "undocument": true,
+    "params": [],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 77,
+    "kind": "method",
+    "name": "nextBlock",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": true,
+    "static": false,
+    "longname": "src/chain.js~Chain#nextBlock",
+    "access": "public",
+    "description": null,
+    "lineNumber": 296,
+    "undocument": true,
+    "params": [
+      {
+        "name": "address",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 78,
+    "kind": "method",
+    "name": "newBlock",
+    "memberof": "src/chain.js~Chain",
+    "generator": false,
+    "async": true,
+    "static": false,
+    "longname": "src/chain.js~Chain#newBlock",
+    "access": "public",
+    "description": "Create new block",
+    "lineNumber": 329,
     "params": [
       {
         "nullable": null,
@@ -769,566 +1359,24 @@
     }
   },
   {
-    "__docId__": 56,
-    "kind": "function",
-    "name": "nextBlock",
-    "memberof": "src/block.js",
-    "generator": false,
-    "async": true,
-    "static": true,
-    "longname": "src/block.js~nextBlock",
-    "access": "public",
-    "export": true,
-    "importPath": "@leofcoin/lib/src/block.js",
-    "importStyle": "{nextBlock}",
-    "description": null,
-    "lineNumber": 115,
-    "undocument": true,
-    "params": [
-      {
-        "name": "address",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 57,
-    "kind": "function",
-    "name": "goodBlock",
-    "memberof": "src/block.js",
-    "generator": false,
-    "async": false,
-    "static": true,
-    "longname": "src/block.js~goodBlock",
-    "access": "public",
-    "export": false,
-    "importPath": "@leofcoin/lib/src/block.js",
-    "importStyle": null,
-    "description": null,
-    "lineNumber": 139,
-    "undocument": true,
-    "params": [
-      {
-        "name": "block",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "difficulty",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": null,
-    "ignore": true
-  },
-  {
-    "__docId__": 58,
-    "kind": "function",
-    "name": "newGenesisDAGNode",
-    "memberof": "src/block.js",
-    "generator": false,
-    "async": true,
-    "static": true,
-    "longname": "src/block.js~newGenesisDAGNode",
-    "access": "public",
-    "export": true,
-    "importPath": "@leofcoin/lib/src/block.js",
-    "importStyle": "{newGenesisDAGNode}",
-    "description": "Create a new genesis block",
-    "lineNumber": 153,
-    "params": [
-      {
-        "name": "difficulty",
-        "optional": true,
-        "types": [
-          "number"
-        ],
-        "defaultRaw": 1,
-        "defaultValue": "1"
-      },
-      {
-        "name": "address",
-        "optional": true,
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 59,
-    "kind": "file",
-    "name": "src/chain.js",
-    "content": "import { GENESISBLOCK } from './params'\r\nimport Validator from './validate'\r\nconst invalidTransactions = {};\r\n\r\nglobalThis.chain = globalThis.chain || [\r\n  GENESISBLOCK\r\n];\r\n\r\nglobalThis.mempool = globalThis.mempool || [];\r\nglobalThis.blockHashSet = globalThis.blockHashSet || [];\r\n\r\nexport default class Chain {\r\n  constructor() {\r\n    this.validateTransaction = new Validator().validateTransaction\r\n  }\r\n  \r\n  get chain() { return globalThis.chain }\r\n  \r\n  get mempool() { return globalThis.mempool }\r\n  \r\n  get blockHashSet() { return globalThis.blockHashSet }\r\n  \r\n  // TODO: needs 3 nodes running\r\n  invalidTransaction(data) {\r\n    // console.log(data.data.toString());\r\n    data = JSON.parse(data.data.toString());\r\n    if (!invalidTransactions[data.tx]) invalidTransactions[data.tx] = 0;\r\n    ++invalidTransactions[data.tx]\r\n    const count = invalidTransactions[data.tx];\r\n    if (count === 3) {\r\n      const memIndex = mempool.indexOf(data)\r\n      mempool.splice(memIndex, 1)\r\n      delete invalidTransactions[data.tx];\r\n    }\r\n  }\r\n  \r\n  async getTransactions(withMempool = true, index = 0) {\r\n    const _chain = [...chain];\r\n    if (index === chain.length - 1) return []\r\n    _chain.slice(index + 1, chain.length - 1)\r\n  \tlet transactions = _chain.reduce((transactions, block) => [ ...transactions, ...block.transactions], []);\r\n  \tif (withMempool) transactions = transactions.concat(mempool);\r\n    let _transactions = []\r\n    // TODO: deprecated, get/put should be handled in core\r\n    for (const tx of transactions) {\r\n      const {multihash} = tx\r\n      if (multihash) {\r\n        let value;\r\n        if (leofcoin.transaction.dag) value = await leofcoin.transaction.dag.get(multihash)\r\n        _transactions.push(value)\r\n      } else {\r\n        _transactions.push(tx)\r\n      }\r\n      \r\n    }\r\n    return _transactions\r\n  };\r\n  \r\n  async getTransactionsForAddress(address, index = 0) {\r\n    const transactions = await this.getTransactions(false, index);\r\n  \treturn transactions.filter(tx => tx.inputs.find(i => i.address === address) ||\r\n    tx.outputs.find(o => o.address === address));\r\n  };\r\n  \r\n  /**\r\n   * \r\n   * @param {string} withMempool - with or without mempool inclusion\r\n   * @param {number} index - block height to start from\r\n   */\r\n  async getUnspent(withMempool = false, index = 0) {\r\n  \tconst transactions = await this.getTransactions(withMempool, index);\r\n  \t// Find all inputs with their tx ids\r\n  \tconst inputs = transactions.reduce((inputs, tx) => inputs.concat(tx.inputs), []);\r\n  \r\n  \t// Find all outputs with their tx ids\r\n  \tconst outputs = transactions.reduce((outputs, tx) =>\r\n  \t\toutputs.concat(tx.outputs.map(output => Object.assign({}, output, {tx: tx.id}))), []);\r\n  \r\n  \t// Figure out which outputs are unspent\r\n  \tconst unspent = outputs.filter(output =>\r\n  \t\ttypeof inputs.find(input => input.tx === output.tx && input.index === output.index && input.amount === output.amount) === 'undefined');\r\n  \treturn unspent;\r\n  }\r\n  \r\n  /**\r\n   * @param {string} address - wallet address\r\n   * @param {number} index - block height to start from\r\n   */\r\n  async getUnspentForAddress(address = null, index = 0) {\r\n    const unspent = await this.getUnspent(true, index)\r\n  \treturn unspent.filter(u => u.address === address);\r\n  }\r\n  \r\n  /**\r\n   * @param {string} address - wallet address\r\n   */\r\n  async getBalanceForAddress(address = null, index) {\r\n    // debug(`Getting balance for ${address}`)\r\n    const unspent = await this.getUnspentForAddress(address, index)\r\n    const amount = unspent.reduce((acc, u) => acc + u.amount , 0);\r\n    // debug(`Got ${amount} for ${address}`)\r\n  \treturn amount\r\n  }\r\n  \r\n  /**\r\n   * @deprecated Use getTransactionsForAddress(addr, index) instead\r\n   *\r\n   * @param {string} address - wallet address\r\n   * @param {number} index - block height to start from\r\n   * \r\n   * @return {number} balance\r\n   */\r\n  async getBalanceForAddressAfter(address = null, index = 0) {\r\n    // debug(`Getting balance for ${address} @${index}`)\r\n    const unspent = await this.getUnspentForAddress(address, index)\r\n    const amount = unspent.reduce((acc, u) => acc + u.amount , 0);\r\n    // debug(`Got ${amount} for ${address} @${index}`)\r\n    return amount\r\n  }\r\n  \r\n  median(array) {\r\n    array.sort((a,b) => a - b)\r\n  \r\n    var half = Math.floor(array.length / 2);\r\n  \r\n    if(array.length % 2)\r\n      return array[half];\r\n    else\r\n      return (array[half - 1] + array[half]) / 2.0;\r\n  }\r\n  \r\n  difficulty() {\r\n  \t// TODO: lower difficulty when transactionpool contain more then 500 tx ?\r\n  \t// TODO: raise difficulty when pool is empty\r\n  \r\n    // or\r\n  \r\n    // TODO: implement iTX (instant transaction)\r\n    // iTX is handled by multiple peers, itx is chained together by their hashes\r\n    // by handlng a tx as itx the block well be converted into a iRootBlock\r\n    // this results into smaller chains (tangles, tails) which should improve\r\n    // resolving transactions, wallet amounts etc ...\r\n  \tconst start = chain.length >= 128 ? (chain.length - 128) : 0;\r\n  \tconst blocks = chain.slice(start, (chain.length - 1)).reverse();\r\n  \tconst stamps = [];\r\n  \tfor (var i = 0; i < blocks.length; i++) {\r\n  \t\tif (blocks[i + 1]) {\r\n  \t\t\tstamps.push(blocks[i].time - blocks[i + 1].time);\r\n  \t\t}\r\n  \t}\r\n  \tif (stamps.length === 0) {\r\n  \t\tstamps.push(10);\r\n  \t}\r\n  \tlet blocksMedian = this.median(stamps) || 10;\r\n    const offset = blocksMedian / 10\r\n     // offset for quick recovery\r\n  \tif (blocksMedian < 10) {\r\n  \t\tblocksMedian -= (offset / 2);\r\n  \t} else if (blocksMedian > 10) {\r\n  \t\tblocksMedian += (offset * 2);\r\n  \t}\r\n    if (blocksMedian < 0) blocksMedian = -blocksMedian\r\n    console.log(`Average Block Time: ${blocksMedian}`);\r\n    console.log(`Difficulty: ${10 / blocksMedian}`);\r\n  \treturn (1000 / (10 / blocksMedian));\r\n  };//10000\r\n  \r\n  \r\n  /**\r\n   * Get the transactions for the next Block\r\n   *\r\n   * @return {object} transactions\r\n   */\r\n  async nextBlockTransactions() {\r\n  \tconst unspent = await this.getUnspent(false);\r\n  \treturn mempool.filter(async (transaction) => {\r\n      const multihash = transaction.multihash\r\n      const value = await leofcoin.transaction.get(multihash)\r\n      console.log({value});\r\n  \t\ttry {\r\n  \t\t\tawait this.validateTransaction(multihash, value, unspent);\r\n        return transaction\r\n  \t\t} catch (e) {\r\n        globalThis.ipfs.pubsub.publish('invalid-transaction', Buffer.from(JSON.stringify(transaction)));\r\n  \t\t\tconsole.error(e);\r\n  \t\t}\r\n  \t});\r\n  };\r\n}",
-    "static": true,
-    "longname": "D:/Workspace/leofcoin/lib/src/chain.js",
-    "access": "public",
-    "description": null,
-    "lineNumber": 1
-  },
-  {
-    "__docId__": 60,
-    "kind": "variable",
-    "name": "invalidTransactions",
-    "memberof": "src/chain.js",
-    "static": true,
-    "longname": "src/chain.js~invalidTransactions",
-    "access": "public",
-    "export": false,
-    "importPath": "@leofcoin/lib/src/chain.js",
-    "importStyle": null,
-    "description": null,
-    "lineNumber": 3,
-    "undocument": true,
-    "type": {
-      "types": [
-        "{}"
-      ]
-    },
-    "ignore": true
-  },
-  {
-    "__docId__": 61,
-    "kind": "class",
-    "name": "Chain",
-    "memberof": "src/chain.js",
-    "static": true,
-    "longname": "src/chain.js~Chain",
-    "access": "public",
-    "export": true,
-    "importPath": "@leofcoin/lib/src/chain.js",
-    "importStyle": "Chain",
-    "description": null,
-    "lineNumber": 12,
-    "undocument": true,
-    "interface": false
-  },
-  {
-    "__docId__": 62,
-    "kind": "constructor",
-    "name": "constructor",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "src/chain.js~Chain#constructor",
-    "access": "public",
-    "description": null,
-    "lineNumber": 13,
-    "undocument": true
-  },
-  {
-    "__docId__": 63,
+    "__docId__": 79,
     "kind": "member",
-    "name": "validateTransaction",
+    "name": "data",
     "memberof": "src/chain.js~Chain",
     "static": false,
-    "longname": "src/chain.js~Chain#validateTransaction",
+    "longname": "src/chain.js~Chain#data",
     "access": "public",
     "description": null,
-    "lineNumber": 14,
+    "lineNumber": 334,
     "undocument": true,
     "type": {
       "types": [
-        "*"
+        "{\"index\": *, \"prevHash\": *, \"time\": *, \"transactions\": *, \"nonce\": *}"
       ]
     }
   },
   {
-    "__docId__": 64,
-    "kind": "get",
-    "name": "chain",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "src/chain.js~Chain#chain",
-    "access": "public",
-    "description": null,
-    "lineNumber": 17,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 65,
-    "kind": "get",
-    "name": "mempool",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "src/chain.js~Chain#mempool",
-    "access": "public",
-    "description": null,
-    "lineNumber": 19,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 66,
-    "kind": "get",
-    "name": "blockHashSet",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "src/chain.js~Chain#blockHashSet",
-    "access": "public",
-    "description": null,
-    "lineNumber": 21,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 67,
-    "kind": "method",
-    "name": "invalidTransaction",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "src/chain.js~Chain#invalidTransaction",
-    "access": "public",
-    "description": null,
-    "lineNumber": 24,
-    "undocument": true,
-    "params": [
-      {
-        "name": "data",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": null
-  },
-  {
-    "__docId__": 68,
-    "kind": "method",
-    "name": "getTransactions",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": true,
-    "static": false,
-    "longname": "src/chain.js~Chain#getTransactions",
-    "access": "public",
-    "description": null,
-    "lineNumber": 37,
-    "undocument": true,
-    "params": [
-      {
-        "name": "withMempool",
-        "optional": true,
-        "types": [
-          "boolean"
-        ],
-        "defaultRaw": true,
-        "defaultValue": "true"
-      },
-      {
-        "name": "index",
-        "optional": true,
-        "types": [
-          "number"
-        ],
-        "defaultRaw": 0,
-        "defaultValue": "0"
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 69,
-    "kind": "method",
-    "name": "getTransactionsForAddress",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": true,
-    "static": false,
-    "longname": "src/chain.js~Chain#getTransactionsForAddress",
-    "access": "public",
-    "description": null,
-    "lineNumber": 59,
-    "undocument": true,
-    "params": [
-      {
-        "name": "address",
-        "types": [
-          "*"
-        ]
-      },
-      {
-        "name": "index",
-        "optional": true,
-        "types": [
-          "number"
-        ],
-        "defaultRaw": 0,
-        "defaultValue": "0"
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 70,
-    "kind": "method",
-    "name": "getUnspent",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": true,
-    "static": false,
-    "longname": "src/chain.js~Chain#getUnspent",
-    "access": "public",
-    "description": "",
-    "lineNumber": 70,
-    "params": [
-      {
-        "nullable": null,
-        "types": [
-          "string"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "withMempool",
-        "description": "with or without mempool inclusion"
-      },
-      {
-        "nullable": null,
-        "types": [
-          "number"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "index",
-        "description": "block height to start from"
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 71,
-    "kind": "method",
-    "name": "getUnspentForAddress",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": true,
-    "static": false,
-    "longname": "src/chain.js~Chain#getUnspentForAddress",
-    "access": "public",
-    "description": "",
-    "lineNumber": 89,
-    "params": [
-      {
-        "nullable": null,
-        "types": [
-          "string"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "address",
-        "description": "wallet address"
-      },
-      {
-        "nullable": null,
-        "types": [
-          "number"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "index",
-        "description": "block height to start from"
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 72,
-    "kind": "method",
-    "name": "getBalanceForAddress",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": true,
-    "static": false,
-    "longname": "src/chain.js~Chain#getBalanceForAddress",
-    "access": "public",
-    "description": "",
-    "lineNumber": 97,
-    "params": [
-      {
-        "nullable": null,
-        "types": [
-          "string"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "address",
-        "description": "wallet address"
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 73,
-    "kind": "method",
-    "name": "getBalanceForAddressAfter",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": true,
-    "static": false,
-    "longname": "src/chain.js~Chain#getBalanceForAddressAfter",
-    "access": "public",
-    "description": "",
-    "lineNumber": 113,
-    "deprecated": "Use getTransactionsForAddress(addr, index) instead",
-    "params": [
-      {
-        "nullable": null,
-        "types": [
-          "string"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "address",
-        "description": "wallet address"
-      },
-      {
-        "nullable": null,
-        "types": [
-          "number"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "index",
-        "description": "block height to start from"
-      }
-    ],
-    "return": {
-      "nullable": null,
-      "types": [
-        "number"
-      ],
-      "spread": false,
-      "description": "balance"
-    }
-  },
-  {
-    "__docId__": 74,
-    "kind": "method",
-    "name": "median",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "src/chain.js~Chain#median",
-    "access": "public",
-    "description": null,
-    "lineNumber": 121,
-    "undocument": true,
-    "params": [
-      {
-        "name": "array",
-        "types": [
-          "*"
-        ]
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 75,
-    "kind": "method",
-    "name": "difficulty",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "src/chain.js~Chain#difficulty",
-    "access": "public",
-    "description": null,
-    "lineNumber": 132,
-    "undocument": true,
-    "params": [],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 76,
-    "kind": "method",
-    "name": "nextBlockTransactions",
-    "memberof": "src/chain.js~Chain",
-    "generator": false,
-    "async": true,
-    "static": false,
-    "longname": "src/chain.js~Chain#nextBlockTransactions",
-    "access": "public",
-    "description": "Get the transactions for the next Block",
-    "lineNumber": 174,
-    "return": {
-      "nullable": null,
-      "types": [
-        "object"
-      ],
-      "spread": false,
-      "description": "transactions"
-    },
-    "params": []
-  },
-  {
-    "__docId__": 77,
+    "__docId__": 80,
     "kind": "file",
     "name": "src/errors.js",
     "content": "const invalid = (name, text) => new Error(`Invalid ${name}: ${text}`);\r\n// TODO: show notification\r\nexport default class Errors {\r\n  BlockError(text) {\r\n    invalid('block', text)\r\n  }\r\n  \r\n  TransactionError(text) {\r\n    invalid('transaction', text)\r\n  }\r\n  \r\n  MinerWarning(text) {\r\n    new Error(`warning @Miner: ${text}`)\r\n  }\r\n}\r\n",
@@ -1339,7 +1387,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 78,
+    "__docId__": 81,
     "kind": "function",
     "name": "invalid",
     "memberof": "src/errors.js",
@@ -1372,7 +1420,7 @@
     "ignore": true
   },
   {
-    "__docId__": 79,
+    "__docId__": 82,
     "kind": "class",
     "name": "Errors",
     "memberof": "src/errors.js",
@@ -1388,7 +1436,7 @@
     "interface": false
   },
   {
-    "__docId__": 80,
+    "__docId__": 83,
     "kind": "method",
     "name": "BlockError",
     "memberof": "src/errors.js~Errors",
@@ -1411,7 +1459,7 @@
     "return": null
   },
   {
-    "__docId__": 81,
+    "__docId__": 84,
     "kind": "method",
     "name": "TransactionError",
     "memberof": "src/errors.js~Errors",
@@ -1434,7 +1482,7 @@
     "return": null
   },
   {
-    "__docId__": 82,
+    "__docId__": 85,
     "kind": "method",
     "name": "MinerWarning",
     "memberof": "src/errors.js~Errors",
@@ -1457,10 +1505,10 @@
     "return": null
   },
   {
-    "__docId__": 83,
+    "__docId__": 86,
     "kind": "file",
     "name": "src/hash.js",
-    "content": "import IPLDLFCTx from 'ipld-lfc-tx'\r\nimport ipldLfc from 'ipld-lfc'\r\nimport CID from 'cids'\r\nconst { LFCNode, util } = ipldLfc\r\n\r\nexport default class Hash {\r\n\tconstructor() {\r\n\t\t\r\n\t}\r\n\t\r\n\thashFromMultihash(multihash) {\r\n\t  const cid = new CID(multihash.replace('/ipfs/', ''))\r\n\t  return cid.multihash.slice(cid.prefix.length / 2).toString('hex')\r\n\t}\r\n\t\r\n\tmultihashFromHash(hash) {\r\n\t  const cid = new CID(1, 'leofcoin-block', Buffer.from(`1d40${hash}`, 'hex'), 'base58btc');\r\n\t  return cid.toBaseEncodedString();\r\n\t}\r\n\t\r\n\tasync blockHash(block) {\r\n\t  block = await new LFCNode(block);\r\n\t  const cid = await util.cid(block.serialize())\r\n\t  return hashFromMultihash(cid.toBaseEncodedString());\r\n\t}\r\n\t\r\n\t/**\r\n\t * Generate transaction hash\r\n\t *\r\n\t * @param {object} transaction {id, type, inputs, outputs}\r\n\t */\r\n\tasync transactionHash(transaction) {\r\n\t\tconst tx = new IPLDLFCTx.LFCTx(transaction)\r\n\t\tconst cid = await IPLDLFCTx.util.cid(tx.serialize())\r\n\t\treturn cid.toBaseEncodedString()\r\n\t}\r\n\r\n\t/**\r\n\t * Generate transaction input hash\r\n\t *\r\n\t * @param {object} transactionInput {transaction, index, amount, address}\r\n\t */\r\n\ttransactionInputHash(transactionInput) {\r\n\t\tconst {tx, index, amount, address} = transactionInput;\r\n\t\treturn _SHA256({tx, index, amount, address});\r\n\t}\r\n\r\n}\r\n\r\n\r\n",
+    "content": "import IPLDLFCTx from 'ipld-lfc-tx'\r\nimport ipldLfc from 'ipld-lfc'\r\nimport CID from 'cids'\r\nconst { LFCNode, util } = ipldLfc\r\n\r\nexport default class Hash {\r\n\tconstructor() {\r\n\t\t\r\n\t}\r\n\t\r\n\thashFromMultihash(multihash) {\r\n\t  const cid = new CID(multihash.replace('/ipfs/', ''))\r\n\t  return cid.multihash.slice(cid.prefix.length / 2).toString('hex')\r\n\t}\r\n\t\r\n\tmultihashFromHash(hash) {\r\n\t  const cid = new CID(1, 'leofcoin-block', Buffer.from(`1d40${hash}`, 'hex'), 'base58btc');\r\n\t  return cid.toBaseEncodedString();\r\n\t}\r\n\t\r\n\tasync blockHash(block) {\t\t\r\n\t  block = await new LFCNode({...block});\r\n\t  const cid = await util.cid(await block.serialize())\r\n\t  return this.hashFromMultihash(cid.toBaseEncodedString());\r\n\t}\r\n\t\r\n\t/**\r\n\t * Generate transaction hash\r\n\t *\r\n\t * @param {object} transaction {id, type, inputs, outputs}\r\n\t */\r\n\tasync transactionHash(transaction) {\r\n\t\tconst tx = new IPLDLFCTx.LFCTx(transaction)\r\n\t\tconst cid = await IPLDLFCTx.util.cid(tx.serialize())\r\n\t\treturn cid.toBaseEncodedString()\r\n\t}\r\n\r\n\t/**\r\n\t * Generate transaction input hash\r\n\t *\r\n\t * @param {object} transactionInput {transaction, index, amount, address}\r\n\t */\r\n\ttransactionInputHash(transactionInput) {\r\n\t\tconst {tx, index, amount, address} = transactionInput;\r\n\t\treturn _SHA256({tx, index, amount, address});\r\n\t}\r\n\r\n}\r\n\r\n\r\n",
     "static": true,
     "longname": "D:/Workspace/leofcoin/lib/src/hash.js",
     "access": "public",
@@ -1468,7 +1516,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 84,
+    "__docId__": 87,
     "kind": "variable",
     "name": "LFCNode",
     "memberof": "src/hash.js",
@@ -1489,7 +1537,7 @@
     "ignore": true
   },
   {
-    "__docId__": 85,
+    "__docId__": 88,
     "kind": "class",
     "name": "Hash",
     "memberof": "src/hash.js",
@@ -1505,7 +1553,7 @@
     "interface": false
   },
   {
-    "__docId__": 86,
+    "__docId__": 89,
     "kind": "constructor",
     "name": "constructor",
     "memberof": "src/hash.js~Hash",
@@ -1519,7 +1567,7 @@
     "undocument": true
   },
   {
-    "__docId__": 87,
+    "__docId__": 90,
     "kind": "method",
     "name": "hashFromMultihash",
     "memberof": "src/hash.js~Hash",
@@ -1546,7 +1594,7 @@
     }
   },
   {
-    "__docId__": 88,
+    "__docId__": 91,
     "kind": "method",
     "name": "multihashFromHash",
     "memberof": "src/hash.js~Hash",
@@ -1573,7 +1621,7 @@
     }
   },
   {
-    "__docId__": 89,
+    "__docId__": 92,
     "kind": "method",
     "name": "blockHash",
     "memberof": "src/hash.js~Hash",
@@ -1600,7 +1648,7 @@
     }
   },
   {
-    "__docId__": 90,
+    "__docId__": 93,
     "kind": "method",
     "name": "transactionHash",
     "memberof": "src/hash.js~Hash",
@@ -1630,7 +1678,7 @@
     }
   },
   {
-    "__docId__": 91,
+    "__docId__": 94,
     "kind": "method",
     "name": "transactionInputHash",
     "memberof": "src/hash.js~Hash",
@@ -1660,10 +1708,10 @@
     }
   },
   {
-    "__docId__": 92,
+    "__docId__": 95,
     "kind": "file",
     "name": "src/index.js",
-    "content": "import * as  block from './block'\r\nimport Chain from './chain'\r\nimport Errors from './errors'\r\nimport Hash from './hash'\r\nimport * as  params from './params'\r\nimport Transaction from './transaction'\r\nimport Validator from './validate'\r\n\r\nconst hash = new Hash()\r\nconst errors = new Errors()\r\nconst validate = new Validator()\r\nconst transaction = new Transaction()\r\nconst chain = new Chain()\r\n\r\nexport {\r\n  block,\r\n  chain,\r\n  errors,\r\n  hash,\r\n  params,\r\n  transaction,\r\n  validate\r\n}\r\n",
+    "content": "import Block from './block'\r\nimport Chain from './chain'\r\nimport Errors from './errors'\r\nimport Hash from './hash'\r\nimport Transaction from './transaction'\r\nimport Validator from './validate'\r\nimport * as  params from './params'\r\n\r\nconst hash = new Hash()\r\nconst errors = new Errors()\r\nconst validate = new Validator()\r\nconst transaction = new Transaction()\r\nconst chain = new Chain()\r\nconst block = new Block()\r\n\r\nexport {\r\n  block,\r\n  chain,\r\n  errors,\r\n  hash,\r\n  params,\r\n  transaction,\r\n  validate\r\n}\r\n",
     "static": true,
     "longname": "D:/Workspace/leofcoin/lib/src/index.js",
     "access": "public",
@@ -1671,7 +1719,27 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 93,
+    "__docId__": 96,
+    "kind": "variable",
+    "name": "block",
+    "memberof": "src/index.js",
+    "static": true,
+    "longname": "src/index.js~block",
+    "access": "public",
+    "export": true,
+    "importPath": "@leofcoin/lib/src/index.js",
+    "importStyle": "{block}",
+    "description": null,
+    "lineNumber": 14,
+    "undocument": true,
+    "type": {
+      "types": [
+        "src/block.js~Block"
+      ]
+    }
+  },
+  {
+    "__docId__": 97,
     "kind": "variable",
     "name": "chain",
     "memberof": "src/index.js",
@@ -1691,7 +1759,7 @@
     }
   },
   {
-    "__docId__": 94,
+    "__docId__": 98,
     "kind": "variable",
     "name": "errors",
     "memberof": "src/index.js",
@@ -1711,7 +1779,7 @@
     }
   },
   {
-    "__docId__": 95,
+    "__docId__": 99,
     "kind": "variable",
     "name": "hash",
     "memberof": "src/index.js",
@@ -1731,7 +1799,7 @@
     }
   },
   {
-    "__docId__": 96,
+    "__docId__": 100,
     "kind": "variable",
     "name": "transaction",
     "memberof": "src/index.js",
@@ -1751,7 +1819,7 @@
     }
   },
   {
-    "__docId__": 97,
+    "__docId__": 101,
     "kind": "variable",
     "name": "validate",
     "memberof": "src/index.js",
@@ -1771,10 +1839,10 @@
     }
   },
   {
-    "__docId__": 98,
+    "__docId__": 102,
     "kind": "file",
     "name": "src/params.js",
-    "content": "export const reward = 150;\r\nexport const consensusSubsidyInterval = 52500;\r\nexport const consensusSubsidyPercentage = 12.5; // quarterlings\r\nexport const genesisCID = 'zsNS6wZiHSc2QPHmjV8TMNn798b4Kp9jpjsBNeUkPhaJTza3GosWUgE72Jy3X9jKMrFCcDni7Pq4yXogQN4TcAfrPmTXFt';\r\nexport const GENESISBS58 = 'EKBqhKsFG14thpzEKUbbb94WG9a1p9sm82YQ2YwK6wkme4C1df2dMwggnDgh74zZsBx2UbWi1qDQLysrrU3YKJ6V73sLtASepYieNpx8Fwjxyjh6xWNYToTNbNkp1geiSWq6fne7Npf37HCZVmi';\r\nexport const GENESISBLOCK = {\r\n\tindex: 0,\r\n  prevHash: Buffer.alloc(47).toString('hex'),\r\n  time: 1590240964,\r\n  transactions: [],\r\n  nonce: 1077701\r\n};\r\nexport const network = 'leofcoin'",
+    "content": "export const reward = 150;\r\nexport const consensusSubsidyInterval = 52500;\r\nexport const consensusSubsidyPercentage = 12.5; // quarterlings\r\nexport const genesisCID = 'zsNS6wZiHSc2QPHmjV8TMNn798b4Kp9jpjsBNeUkPhaJTza3GosWUgE72Jy3X9jKMrFCcDni7Pq4yXogQN4TcAfrPmTXFt';\r\nexport const GENESISBS58 = 'EKBqhKsFG14thpzEKUbbb94WG9a1p9sm82YQ2YwK6wkme4C1df2dMwggnDgh74zZsBx2UbWi1qDQLysrrU3YKJ6V73sLtASepYieNpx8Fwjxyjh6xWNYToTNbNkp1geiSWq6fne7Npf37HCZVmi';\r\nexport const GENESISBLOCK = {\r\n\tindex: 0,\r\n  prevHash: Buffer.alloc(47).toString('hex'),\r\n  time: 1590240964,\r\n  transactions: [],\r\n  nonce: 1077701\r\n}\r\n\r\n/**\r\n * network (hardcoded for now)\r\n * @dev change to 'leofcoin:olivia' for testnet\r\n */\r\nexport const network = 'leofcoin'",
     "static": true,
     "longname": "D:/Workspace/leofcoin/lib/src/params.js",
     "access": "public",
@@ -1782,7 +1850,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 99,
+    "__docId__": 103,
     "kind": "variable",
     "name": "reward",
     "memberof": "src/params.js",
@@ -1802,7 +1870,7 @@
     }
   },
   {
-    "__docId__": 100,
+    "__docId__": 104,
     "kind": "variable",
     "name": "consensusSubsidyInterval",
     "memberof": "src/params.js",
@@ -1822,7 +1890,7 @@
     }
   },
   {
-    "__docId__": 101,
+    "__docId__": 105,
     "kind": "variable",
     "name": "consensusSubsidyPercentage",
     "memberof": "src/params.js",
@@ -1842,7 +1910,7 @@
     }
   },
   {
-    "__docId__": 102,
+    "__docId__": 106,
     "kind": "variable",
     "name": "genesisCID",
     "memberof": "src/params.js",
@@ -1862,7 +1930,7 @@
     }
   },
   {
-    "__docId__": 103,
+    "__docId__": 107,
     "kind": "variable",
     "name": "GENESISBS58",
     "memberof": "src/params.js",
@@ -1882,7 +1950,7 @@
     }
   },
   {
-    "__docId__": 104,
+    "__docId__": 108,
     "kind": "variable",
     "name": "GENESISBLOCK",
     "memberof": "src/params.js",
@@ -1902,7 +1970,7 @@
     }
   },
   {
-    "__docId__": 105,
+    "__docId__": 109,
     "kind": "variable",
     "name": "network",
     "memberof": "src/params.js",
@@ -1913,7 +1981,7 @@
     "importPath": "@leofcoin/lib/src/params.js",
     "importStyle": "{network}",
     "description": null,
-    "lineNumber": 13,
+    "lineNumber": 18,
     "undocument": true,
     "type": {
       "types": [
@@ -1922,10 +1990,10 @@
     }
   },
   {
-    "__docId__": 106,
+    "__docId__": 110,
     "kind": "file",
     "name": "src/transaction.js",
-    "content": "import Validator from './validate.js'\r\nimport Chain from './chain'\r\nimport Errors from './errors.js'\r\nimport Hash from './hash.js'\r\nimport { randomBytes } from 'crypto'\r\nimport MultiWallet from '@leofcoin/multi-wallet'\r\nimport { network, consensusSubsidyInterval, reward } from './params.js';\r\nimport * as ipldLfcTx from 'ipld-lfc-tx';\r\n\r\nconst { LFCTx, util } = ipldLfcTx\r\n\r\n\r\nexport default class Transaction {\r\n  constructor() {\r\n    this.validator = new Validator()\r\n    this.isValid = this.validator.isValid\r\n    this.getUnspentForAddress = new Chain().getUnspentForAddress\r\n    this.TransactionError = new Errors().TransactionError\r\n    const hash = new Hash()\r\n    this.transactionInputHash = hash.transactionInputHash\r\n    this.transactionHash = hash.transactionHash\r\n  }\r\n  \r\n  /**\r\n   * validate transaction\r\n   *\r\n   * @param multihash\r\n   * @param transaction\r\n   * @param unspent\r\n   */\r\n  async validateTransaction(multihash, transaction, unspent) {\r\n  \tif (!transaction.reward) delete transaction.reward\r\n  \tconst outputs = transaction.outputs.map(o => {\r\n  \t\t// TODO: fix script\r\n  \t\tif (!o.script) delete o.script\r\n  \t\treturn o\r\n  \t})\r\n  \ttransaction.outputs = outputs\r\n  \tif (!transaction.script) delete transaction.script\r\n  \tif (!isValid('transaction', transaction)) throw this.TransactionError('Invalid transaction');\r\n  \tif (multihash !== await this.transactionHash(transaction)) throw this.TransactionError('Invalid transaction hash');\r\n  \t// TODO: versions should be handled here...\r\n  \t// Verify each input signature\r\n  \t\r\n  \tif (transaction.inputs) {\r\n  \t\ttransaction.inputs.forEach(input => {\r\n  \t  \tconst { signature, address } = input;\r\n  \t\t\tconst hash = this.transactionInputHash(input);\r\n  \r\n  \t  \tlet wallet = new MultiWallet(network);\r\n  \t    wallet.fromAddress(address, null, network);\r\n  \t\t\t\r\n  \t\t\tif (!wallet.verify(Buffer.from(signature, 'hex'), Buffer.from(hash, 'hex')))\r\n  \t\t\t\tthrow this.TransactionError('Invalid input signature');\r\n  \t\t});\r\n  \t\r\n  \t\t// Check if inputs are in unspent list\r\n  \t\ttransaction.inputs.forEach((input) => {\r\n  \t\t\tif (!unspent.find(out => out.tx === input.tx && out.index === input.index)) { throw this.TransactionError('Input has been already spent: ' + input.tx); }\r\n  \t\t});\t\r\n  \t}\r\n  \t\r\n  \tif (transaction.reward === 'mined') {\r\n  \t\t// For reward transaction: check if reward output is correct\r\n  \t\tif (transaction.outputs.length !== 1) throw this.TransactionError('Reward transaction must have exactly one output');\r\n  \t\tif (transaction.outputs[0].amount !== reward) throw this.TransactionError(`Mining reward must be exactly: ${reward}`);\r\n  \t} else if (transaction.inputs) {\r\n  \t\t// For normal transaction: check if total output amount equals input amount\r\n  \t\tif (transaction.inputs.reduce((acc, input) => acc + input.amount, 0) !==\r\n        transaction.outputs.reduce((acc, output) => acc + output.amount, 0)) { throw this.TransactionError('Input and output amounts do not match'); }\r\n  \t}\r\n  \r\n  \treturn true;\r\n  }\r\n  \r\n  /**\r\n   * validate transactions list for current block\r\n   *\r\n   * @param {array} transactions\r\n   * @param unspent\r\n   */\r\n  async validateTransactions(transactions, unspent) {\r\n  \tconst _transactions = []\r\n  \tfor (const {multihash} of transactions) {\r\n  \t\tconst tx = await leofcoin.transaction.dag.get(multihash)\r\n  \t\t_transactions.push({multihash, value: tx.toJSON()})\r\n  \t\t\r\n  \t}\r\n  \tfor (const {value, multihash} of _transactions) {\r\n  \t\t// TODO: fix value.scrip\r\n  \t\tawait this.validateTransaction(multihash, value, unspent)\r\n  \t}\r\n  \t\r\n  \tif (_transactions.filter(({value}) => value.reward === 'mined').length !== 1)\r\n  \t\tthrow this.TransactionError('Transactions cannot have more than one reward')\t\r\n  }\r\n  \r\n  /**\r\n   * Create transaction\r\n   *\r\n   * @param inputs\r\n   * @param outputs\r\n   * @param reward\r\n   * @return {{id: string, reward: boolean, inputs: *, outputs: *, hash: string}}\r\n   */\r\n  async newTransaction(inputs, outputs, reward = null) {\r\n  \ttry {\r\n  \t\tconst tx = new LFCTx({\r\n  \t\t\tid: randomBytes(32).toString('hex'),\r\n  \t\t\ttime: Math.floor(new Date().getTime() / 1000),\r\n  \t\t\treward,\r\n  \t\t\toutputs,\r\n  \t\t\tinputs\r\n  \t\t});\r\n  \t\t// const cid = await util.cid(tx.serialize())\r\n  \t\t// await global.ipfs.dag.put(tx, {format: util.codec, hashAlg: util.defaultHashAlg, version: 1, baseFormat: 'base58btc'})\r\n  \t\treturn tx\r\n  \t} catch (e) {\r\n  \t\tthrow e\r\n  \t}\r\n  }\r\n  \r\n  /**\r\n   * @param {number} height\r\n   */\r\n  consensusSubsidy(height) {\r\n  \tconst quarterlings = height / consensusSubsidyInterval;\r\n  \tif (quarterlings >= 256) {\r\n  \t\treturn 0;\r\n  \t}\r\n  \t//subsidy is lowered by 12.5 %, approx every year\r\n  \tconst minus = quarterlings >= 1 ? (quarterlings * (reward / 256)) : 0;\r\n  \treturn reward - minus;\r\n  }\r\n  \r\n  /**\r\n   * Create reward transaction for block mining\r\n   *\r\n   * @param {string} address\r\n   * @param {number} height\r\n   * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}\r\n   */\r\n  async createRewardTransaction(address, height) {\r\n  \treturn this.newTransaction([], [{index: 0, amount: this.consensusSubsidy(height), address}], 'mined');\r\n  };\r\n  \r\n  /**\r\n   * Verify signature\r\n   *\r\n   * @param {string} address - signer address\r\n   * @param {string} signature - signature to verify\r\n   * @param {string} hash - transaction hash\r\n   */\r\n  verifySignature(address, signature, hash) {\r\n  \tconst wallet = new MultiWallet(network);\r\n  \treturn wallet.verify(signature, hash, address);\r\n  }\r\n  \r\n  /**\r\n   * Create and sign input\r\n   *\r\n   * @param transaction Based on transaction id\r\n   * @param index Based on transaction output index\r\n   * @param amount\r\n   * @param wallet\r\n   * @return {transaction, index, amount, address}\r\n   */\r\n  createInput(transaction, index, amount, wallet) {\r\n  \tconst input = {\r\n  \t\ttransaction,\r\n  \t\tindex,\r\n  \t\tamount,\r\n  \t\taddress: wallet.address,\r\n  \t};\r\n  \tinput.signature = wallet.sign(Buffer.from(this.transactionInputHash(input), 'hex')).toString('hex');\r\n  \treturn input;\r\n  }\r\n  \r\n  /**\r\n   * Create a transaction\r\n   *\r\n   * @param wallet\r\n   * @param toAddress\r\n   * @param amount\r\n   * @return {id, reward, inputs, outputs, hash,}\r\n   */\r\n  async buildTransaction(wallet, toAddress, amount) {\r\n  \tlet inputsAmount = 0;\r\n  \tconst unspent = await this.getUnspentForAddress(wallet.address);\r\n  \tconst inputsRaw = unspent.filter(i => {\r\n  \t\tconst more = inputsAmount < amount;\r\n  \t\tif (more) inputsAmount += i.amount;\r\n  \t\treturn more;\r\n  \t});\r\n  \tif (inputsAmount < amount) throw this.TransactionError('Not enough funds');\r\n  \t// TODO: Add multiSigning\r\n  \tconst inputs = inputsRaw.map(i => this.createInput(i.tx, i.index, i.amount, wallet));\r\n  \t// Send amount to destination address\r\n  \tconst outputs = [{index: 0, amount, address: toAddress}];\r\n  \t// Send back change to my wallet\r\n  \tif (inputsAmount - amount > 0) {\r\n  \t\toutputs.push({index: 1, amount: inputsAmount - amount, address: wallet.address});\r\n  \t}\r\n  \treturn this.newTransaction(inputs, outputs);\r\n  }\r\n}\r\n",
+    "content": "import Validator from './validate.js'\r\nimport Errors from './errors.js'\r\nimport Hash from './hash.js'\r\nimport { randomBytes } from 'crypto'\r\nimport MultiWallet from '@leofcoin/multi-wallet'\r\nimport { network, reward } from './params.js';\r\nimport * as ipldLfcTx from 'ipld-lfc-tx';\r\n\r\nconst { LFCTx, util } = ipldLfcTx\r\n\r\n/**\r\n * Create transaction\r\n *\r\n * @param inputs\r\n * @param outputs\r\n * @param reward\r\n * @return {{id: string, reward: boolean, inputs: *, outputs: *, hash: string}}\r\n */\r\nconst newTransaction = async (inputs, outputs, reward = null) => {\r\n  try {\r\n    const tx = new LFCTx({\r\n      id: randomBytes(32).toString('hex'),\r\n      time: Math.floor(new Date().getTime() / 1000),\r\n      reward,\r\n      outputs,\r\n      inputs\r\n    });\r\n    // const cid = await util.cid(tx.serialize())\r\n    // await global.ipfs.dag.put(tx, {format: util.codec, hashAlg: util.defaultHashAlg, version: 1, baseFormat: 'base58btc'})\r\n    return tx\r\n  } catch (e) {\r\n    throw e\r\n  }\r\n}\r\n\r\n/**\r\n * Create reward transaction for block mining\r\n *\r\n * @param {string} address\r\n * @param {number} height\r\n * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}\r\n */\r\nexport const createRewardTransaction = async (address, amount) => {\r\n  return newTransaction([], [{index: 0, amount, address}], 'mined');\r\n}\r\n\r\n\r\nexport default class Transaction {\r\n  constructor() {\r\n    this.validator = new Validator()\r\n    this.isValid = this.validator.isValid\r\n    this.TransactionError = new Errors().TransactionError\r\n    const hash = new Hash()\r\n    this.transactionInputHash = hash.transactionInputHash\r\n    this.transactionHash = hash.transactionHash\r\n  }\r\n  \r\n  /**\r\n   * validate transaction\r\n   *\r\n   * @param multihash\r\n   * @param transaction\r\n   * @param unspent\r\n   */\r\n  async validateTransaction(multihash, transaction, unspent) {\r\n  \tif (!transaction.reward) delete transaction.reward\r\n  \tconst outputs = transaction.outputs.map(o => {\r\n  \t\t// TODO: fix script\r\n  \t\tif (!o.script) delete o.script\r\n  \t\treturn o\r\n  \t})\r\n  \ttransaction.outputs = outputs\r\n  \tif (!transaction.script) delete transaction.script\r\n  \tif (!isValid('transaction', transaction)) throw this.TransactionError('Invalid transaction');\r\n  \tif (multihash !== await this.transactionHash(transaction)) throw this.TransactionError('Invalid transaction hash');\r\n  \t// TODO: versions should be handled here...\r\n  \t// Verify each input signature\r\n  \t\r\n  \tif (transaction.inputs) {\r\n  \t\ttransaction.inputs.forEach(input => {\r\n  \t  \tconst { signature, address } = input;\r\n  \t\t\tconst hash = this.transactionInputHash(input);\r\n  \r\n  \t  \tlet wallet = new MultiWallet(network);\r\n  \t    wallet.fromAddress(address, null, network);\r\n  \t\t\t\r\n  \t\t\tif (!wallet.verify(Buffer.from(signature, 'hex'), Buffer.from(hash, 'hex')))\r\n  \t\t\t\tthrow this.TransactionError('Invalid input signature');\r\n  \t\t});\r\n  \t\r\n  \t\t// Check if inputs are in unspent list\r\n  \t\ttransaction.inputs.forEach((input) => {\r\n  \t\t\tif (!unspent.find(out => out.tx === input.tx && out.index === input.index)) { throw this.TransactionError('Input has been already spent: ' + input.tx); }\r\n  \t\t});\t\r\n  \t}\r\n  \t\r\n  \tif (transaction.reward === 'mined') {\r\n  \t\t// For reward transaction: check if reward output is correct\r\n  \t\tif (transaction.outputs.length !== 1) throw this.TransactionError('Reward transaction must have exactly one output');\r\n  \t\tif (transaction.outputs[0].amount !== reward) throw this.TransactionError(`Mining reward must be exactly: ${reward}`);\r\n  \t} else if (transaction.inputs) {\r\n  \t\t// For normal transaction: check if total output amount equals input amount\r\n  \t\tif (transaction.inputs.reduce((acc, input) => acc + input.amount, 0) !==\r\n        transaction.outputs.reduce((acc, output) => acc + output.amount, 0)) { throw this.TransactionError('Input and output amounts do not match'); }\r\n  \t}\r\n  \r\n  \treturn true;\r\n  }\r\n  \r\n  /**\r\n   * validate transactions list for current block\r\n   *\r\n   * @param {array} transactions\r\n   * @param unspent\r\n   */\r\n  async validateTransactions(transactions, unspent) {\r\n  \tconst _transactions = []\r\n  \tfor (const {multihash} of transactions) {\r\n  \t\tconst tx = await leofcoin.transaction.dag.get(multihash)\r\n  \t\t_transactions.push({multihash, value: tx.toJSON()})\r\n  \t\t\r\n  \t}\r\n  \tfor (const {value, multihash} of _transactions) {\r\n  \t\t// TODO: fix value.scrip\r\n  \t\tawait this.validateTransaction(multihash, value, unspent)\r\n  \t}\r\n  \t\r\n  \tif (_transactions.filter(({value}) => value.reward === 'mined').length !== 1)\r\n  \t\tthrow this.TransactionError('Transactions cannot have more than one reward')\t\r\n  }\r\n  \r\n  /**\r\n   * Verify signature\r\n   *\r\n   * @param {string} address - signer address\r\n   * @param {string} signature - signature to verify\r\n   * @param {string} hash - transaction hash\r\n   */\r\n  verifySignature(address, signature, hash) {\r\n  \tconst wallet = new MultiWallet(network);\r\n  \treturn wallet.verify(signature, hash, address);\r\n  }\r\n  \r\n  /**\r\n   * Create and sign input\r\n   *\r\n   * @param transaction Based on transaction id\r\n   * @param index Based on transaction output index\r\n   * @param amount\r\n   * @param wallet\r\n   * @return {transaction, index, amount, address}\r\n   */\r\n  createInput(transaction, index, amount, wallet) {\r\n  \tconst input = {\r\n  \t\ttransaction,\r\n  \t\tindex,\r\n  \t\tamount,\r\n  \t\taddress: wallet.address,\r\n  \t};\r\n  \tinput.signature = wallet.sign(Buffer.from(this.transactionInputHash(input), 'hex')).toString('hex');\r\n  \treturn input;\r\n  }\r\n  \r\n  /**\r\n   * Create a transaction\r\n   *\r\n   * @param wallet\r\n   * @param toAddress\r\n   * @param amount\r\n   * @return {id, reward, inputs, outputs, hash,}\r\n   */\r\n  async buildTransaction(wallet, toAddress, amount, unspent) {\r\n  \tlet inputsAmount = 0;\r\n  \t// const unspent = await this.getUnspentForAddress(wallet.address);\r\n  \tconst inputsRaw = unspent.filter(i => {\r\n  \t\tconst more = inputsAmount < amount;\r\n  \t\tif (more) inputsAmount += i.amount;\r\n  \t\treturn more;\r\n  \t});\r\n  \tif (inputsAmount < amount) throw this.TransactionError('Not enough funds');\r\n  \t// TODO: Add multiSigning\r\n  \tconst inputs = inputsRaw.map(i => this.createInput(i.tx, i.index, i.amount, wallet));\r\n  \t// Send amount to destination address\r\n  \tconst outputs = [{index: 0, amount, address: toAddress}];\r\n  \t// Send back change to my wallet\r\n  \tif (inputsAmount - amount > 0) {\r\n  \t\toutputs.push({index: 1, amount: inputsAmount - amount, address: wallet.address});\r\n  \t}\r\n  \treturn this.newTransaction(inputs, outputs);\r\n  }\r\n}\r\n",
     "static": true,
     "longname": "D:/Workspace/leofcoin/lib/src/transaction.js",
     "access": "public",
@@ -1933,7 +2001,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 107,
+    "__docId__": 111,
     "kind": "variable",
     "name": "LFCTx",
     "memberof": "src/transaction.js",
@@ -1944,7 +2012,7 @@
     "importPath": "@leofcoin/lib/src/transaction.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 10,
+    "lineNumber": 9,
     "undocument": true,
     "type": {
       "types": [
@@ -1954,235 +2022,20 @@
     "ignore": true
   },
   {
-    "__docId__": 108,
-    "kind": "class",
-    "name": "Transaction",
-    "memberof": "src/transaction.js",
-    "static": true,
-    "longname": "src/transaction.js~Transaction",
-    "access": "public",
-    "export": true,
-    "importPath": "@leofcoin/lib/src/transaction.js",
-    "importStyle": "Transaction",
-    "description": null,
-    "lineNumber": 13,
-    "undocument": true,
-    "interface": false
-  },
-  {
-    "__docId__": 109,
-    "kind": "constructor",
-    "name": "constructor",
-    "memberof": "src/transaction.js~Transaction",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "src/transaction.js~Transaction#constructor",
-    "access": "public",
-    "description": null,
-    "lineNumber": 14,
-    "undocument": true
-  },
-  {
-    "__docId__": 110,
-    "kind": "member",
-    "name": "validator",
-    "memberof": "src/transaction.js~Transaction",
-    "static": false,
-    "longname": "src/transaction.js~Transaction#validator",
-    "access": "public",
-    "description": null,
-    "lineNumber": 15,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 111,
-    "kind": "member",
-    "name": "isValid",
-    "memberof": "src/transaction.js~Transaction",
-    "static": false,
-    "longname": "src/transaction.js~Transaction#isValid",
-    "access": "public",
-    "description": null,
-    "lineNumber": 16,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
     "__docId__": 112,
-    "kind": "member",
-    "name": "getUnspentForAddress",
-    "memberof": "src/transaction.js~Transaction",
-    "static": false,
-    "longname": "src/transaction.js~Transaction#getUnspentForAddress",
-    "access": "public",
-    "description": null,
-    "lineNumber": 17,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 113,
-    "kind": "member",
-    "name": "TransactionError",
-    "memberof": "src/transaction.js~Transaction",
-    "static": false,
-    "longname": "src/transaction.js~Transaction#TransactionError",
-    "access": "public",
-    "description": null,
-    "lineNumber": 18,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 114,
-    "kind": "member",
-    "name": "transactionInputHash",
-    "memberof": "src/transaction.js~Transaction",
-    "static": false,
-    "longname": "src/transaction.js~Transaction#transactionInputHash",
-    "access": "public",
-    "description": null,
-    "lineNumber": 20,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 115,
-    "kind": "member",
-    "name": "transactionHash",
-    "memberof": "src/transaction.js~Transaction",
-    "static": false,
-    "longname": "src/transaction.js~Transaction#transactionHash",
-    "access": "public",
-    "description": null,
-    "lineNumber": 21,
-    "undocument": true,
-    "type": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 116,
-    "kind": "method",
-    "name": "validateTransaction",
-    "memberof": "src/transaction.js~Transaction",
-    "generator": false,
-    "async": true,
-    "static": false,
-    "longname": "src/transaction.js~Transaction#validateTransaction",
-    "access": "public",
-    "description": "validate transaction",
-    "lineNumber": 31,
-    "params": [
-      {
-        "nullable": null,
-        "types": [
-          "*"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "multihash",
-        "description": ""
-      },
-      {
-        "nullable": null,
-        "types": [
-          "*"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "transaction",
-        "description": ""
-      },
-      {
-        "nullable": null,
-        "types": [
-          "*"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "unspent",
-        "description": ""
-      }
-    ],
-    "return": {
-      "types": [
-        "boolean"
-      ]
-    }
-  },
-  {
-    "__docId__": 117,
-    "kind": "method",
-    "name": "validateTransactions",
-    "memberof": "src/transaction.js~Transaction",
-    "generator": false,
-    "async": true,
-    "static": false,
-    "longname": "src/transaction.js~Transaction#validateTransactions",
-    "access": "public",
-    "description": "validate transactions list for current block",
-    "lineNumber": 82,
-    "params": [
-      {
-        "nullable": null,
-        "types": [
-          "array"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "transactions",
-        "description": ""
-      },
-      {
-        "nullable": null,
-        "types": [
-          "*"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "unspent",
-        "description": ""
-      }
-    ],
-    "return": null
-  },
-  {
-    "__docId__": 118,
-    "kind": "method",
+    "kind": "function",
     "name": "newTransaction",
-    "memberof": "src/transaction.js~Transaction",
+    "memberof": "src/transaction.js",
     "generator": false,
     "async": true,
-    "static": false,
-    "longname": "src/transaction.js~Transaction#newTransaction",
+    "static": true,
+    "longname": "src/transaction.js~newTransaction",
     "access": "public",
+    "export": false,
+    "importPath": "@leofcoin/lib/src/transaction.js",
+    "importStyle": null,
     "description": "Create transaction",
-    "lineNumber": 106,
+    "lineNumber": 19,
     "params": [
       {
         "nullable": null,
@@ -2222,50 +2075,24 @@
       ],
       "spread": false,
       "description": ""
-    }
+    },
+    "ignore": true
   },
   {
-    "__docId__": 119,
-    "kind": "method",
-    "name": "consensusSubsidy",
-    "memberof": "src/transaction.js~Transaction",
-    "generator": false,
-    "async": false,
-    "static": false,
-    "longname": "src/transaction.js~Transaction#consensusSubsidy",
-    "access": "public",
-    "description": "",
-    "lineNumber": 126,
-    "params": [
-      {
-        "nullable": null,
-        "types": [
-          "number"
-        ],
-        "spread": false,
-        "optional": false,
-        "name": "height",
-        "description": ""
-      }
-    ],
-    "return": {
-      "types": [
-        "*"
-      ]
-    }
-  },
-  {
-    "__docId__": 120,
-    "kind": "method",
+    "__docId__": 113,
+    "kind": "function",
     "name": "createRewardTransaction",
-    "memberof": "src/transaction.js~Transaction",
+    "memberof": "src/transaction.js",
     "generator": false,
     "async": true,
-    "static": false,
-    "longname": "src/transaction.js~Transaction#createRewardTransaction",
+    "static": true,
+    "longname": "src/transaction.js~createRewardTransaction",
     "access": "public",
+    "export": true,
+    "importPath": "@leofcoin/lib/src/transaction.js",
+    "importStyle": "{createRewardTransaction}",
     "description": "Create reward transaction for block mining",
-    "lineNumber": 143,
+    "lineNumber": 43,
     "params": [
       {
         "nullable": null,
@@ -2298,7 +2125,208 @@
     }
   },
   {
+    "__docId__": 114,
+    "kind": "class",
+    "name": "Transaction",
+    "memberof": "src/transaction.js",
+    "static": true,
+    "longname": "src/transaction.js~Transaction",
+    "access": "public",
+    "export": true,
+    "importPath": "@leofcoin/lib/src/transaction.js",
+    "importStyle": "Transaction",
+    "description": null,
+    "lineNumber": 48,
+    "undocument": true,
+    "interface": false
+  },
+  {
+    "__docId__": 115,
+    "kind": "constructor",
+    "name": "constructor",
+    "memberof": "src/transaction.js~Transaction",
+    "generator": false,
+    "async": false,
+    "static": false,
+    "longname": "src/transaction.js~Transaction#constructor",
+    "access": "public",
+    "description": null,
+    "lineNumber": 49,
+    "undocument": true
+  },
+  {
+    "__docId__": 116,
+    "kind": "member",
+    "name": "validator",
+    "memberof": "src/transaction.js~Transaction",
+    "static": false,
+    "longname": "src/transaction.js~Transaction#validator",
+    "access": "public",
+    "description": null,
+    "lineNumber": 50,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 117,
+    "kind": "member",
+    "name": "isValid",
+    "memberof": "src/transaction.js~Transaction",
+    "static": false,
+    "longname": "src/transaction.js~Transaction#isValid",
+    "access": "public",
+    "description": null,
+    "lineNumber": 51,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 118,
+    "kind": "member",
+    "name": "TransactionError",
+    "memberof": "src/transaction.js~Transaction",
+    "static": false,
+    "longname": "src/transaction.js~Transaction#TransactionError",
+    "access": "public",
+    "description": null,
+    "lineNumber": 52,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 119,
+    "kind": "member",
+    "name": "transactionInputHash",
+    "memberof": "src/transaction.js~Transaction",
+    "static": false,
+    "longname": "src/transaction.js~Transaction#transactionInputHash",
+    "access": "public",
+    "description": null,
+    "lineNumber": 54,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 120,
+    "kind": "member",
+    "name": "transactionHash",
+    "memberof": "src/transaction.js~Transaction",
+    "static": false,
+    "longname": "src/transaction.js~Transaction#transactionHash",
+    "access": "public",
+    "description": null,
+    "lineNumber": 55,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
     "__docId__": 121,
+    "kind": "method",
+    "name": "validateTransaction",
+    "memberof": "src/transaction.js~Transaction",
+    "generator": false,
+    "async": true,
+    "static": false,
+    "longname": "src/transaction.js~Transaction#validateTransaction",
+    "access": "public",
+    "description": "validate transaction",
+    "lineNumber": 65,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "*"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "multihash",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "*"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "transaction",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "*"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "unspent",
+        "description": ""
+      }
+    ],
+    "return": {
+      "types": [
+        "boolean"
+      ]
+    }
+  },
+  {
+    "__docId__": 122,
+    "kind": "method",
+    "name": "validateTransactions",
+    "memberof": "src/transaction.js~Transaction",
+    "generator": false,
+    "async": true,
+    "static": false,
+    "longname": "src/transaction.js~Transaction#validateTransactions",
+    "access": "public",
+    "description": "validate transactions list for current block",
+    "lineNumber": 116,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "transactions",
+        "description": ""
+      },
+      {
+        "nullable": null,
+        "types": [
+          "*"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "unspent",
+        "description": ""
+      }
+    ],
+    "return": null
+  },
+  {
+    "__docId__": 123,
     "kind": "method",
     "name": "verifySignature",
     "memberof": "src/transaction.js~Transaction",
@@ -2308,7 +2336,7 @@
     "longname": "src/transaction.js~Transaction#verifySignature",
     "access": "public",
     "description": "Verify signature",
-    "lineNumber": 154,
+    "lineNumber": 139,
     "params": [
       {
         "nullable": null,
@@ -2348,7 +2376,7 @@
     }
   },
   {
-    "__docId__": 122,
+    "__docId__": 124,
     "kind": "method",
     "name": "createInput",
     "memberof": "src/transaction.js~Transaction",
@@ -2358,7 +2386,7 @@
     "longname": "src/transaction.js~Transaction#createInput",
     "access": "public",
     "description": "Create and sign input",
-    "lineNumber": 168,
+    "lineNumber": 153,
     "params": [
       {
         "nullable": null,
@@ -2411,7 +2439,7 @@
     }
   },
   {
-    "__docId__": 123,
+    "__docId__": 125,
     "kind": "method",
     "name": "buildTransaction",
     "memberof": "src/transaction.js~Transaction",
@@ -2421,7 +2449,7 @@
     "longname": "src/transaction.js~Transaction#buildTransaction",
     "access": "public",
     "description": "Create a transaction",
-    "lineNumber": 187,
+    "lineNumber": 172,
     "params": [
       {
         "nullable": null,
@@ -2464,7 +2492,7 @@
     }
   },
   {
-    "__docId__": 124,
+    "__docId__": 126,
     "kind": "file",
     "name": "src/validate.js",
     "content": "import {object, number, array, string } from '@hapi/joi';\r\n\r\nexport default class Validate {\r\n\tconstructor() {\r\n\t\t\r\n\t\tconst block = object().keys({\r\n\t\t\tindex: number(),\r\n\t\t\tprevHash: string().length(94),\r\n\t\t\ttime: number(),\r\n\t\t\ttransactions: array().items(object().keys({\r\n\t\t\t\tmultihash: string(),\r\n\t\t\t\tsize: number()\r\n\t\t\t})),\r\n\t\t\tnonce: number(),\r\n\t\t\thash: string().length(128)\r\n\t\t});\r\n\t\t\r\n\t\tconst transaction = object().keys({\r\n\t\t\tid: string().hex().length(64),\r\n\t\t\ttime: number(),\r\n\t\t\treward: string(),\r\n\t\t\tscript: string(),\r\n\t\t\tinputs: array().items(object().keys({\r\n\t\t\t\ttx: string().hex().length(64),\r\n\t\t\t\tindex: number(),\r\n\t\t\t\tamount: number(),\r\n\t\t\t\taddress: string(),\r\n\t\t\t\tsignature: string().hex()\r\n\t\t\t})),\r\n\t\t\toutputs: array().items(object().keys({\r\n\t\t\t\tindex: number(),\r\n\t\t\t\tamount: number(),\r\n\t\t\t\taddress: string()\r\n\t\t\t})),\r\n\t\t});\r\n\t\t\r\n\t\tthis.schemas = {\r\n\t\t\tblock,\r\n\t\t\ttransaction,\r\n\t\t};\r\n\t}\r\n\t\t\r\n\tvalidate(schema, data) {\r\n\t\tthis.schemas[schema].validate(data);\r\n\t}\r\n\t\r\n\tisValid(schema, data) {\r\n\t\treturn Boolean(!this.validate(schema, data).error)\r\n\t};\r\n}",
@@ -2475,7 +2503,7 @@
     "lineNumber": 1
   },
   {
-    "__docId__": 125,
+    "__docId__": 127,
     "kind": "class",
     "name": "Validate",
     "memberof": "src/validate.js",
@@ -2491,7 +2519,7 @@
     "interface": false
   },
   {
-    "__docId__": 126,
+    "__docId__": 128,
     "kind": "constructor",
     "name": "constructor",
     "memberof": "src/validate.js~Validate",
@@ -2505,7 +2533,7 @@
     "undocument": true
   },
   {
-    "__docId__": 127,
+    "__docId__": 129,
     "kind": "member",
     "name": "schemas",
     "memberof": "src/validate.js~Validate",
@@ -2522,7 +2550,7 @@
     }
   },
   {
-    "__docId__": 128,
+    "__docId__": 130,
     "kind": "method",
     "name": "validate",
     "memberof": "src/validate.js~Validate",
@@ -2551,7 +2579,7 @@
     "return": null
   },
   {
-    "__docId__": 129,
+    "__docId__": 131,
     "kind": "method",
     "name": "isValid",
     "memberof": "src/validate.js~Validate",
@@ -2585,7 +2613,7 @@
   },
   {
     "kind": "index",
-    "content": "# @leofcoin/lib",
+    "content": "# @leofcoin/lib\r\n\r\n\r\n[![Coverage](https://coveralls.io/repos/github/leofcoin/lib/badge.svg?branch=master)](https://coveralls.io/github/leofcoin/lib?branch=master)\r\n[![Build Status](https://travis-ci.org/leofcoin/lib.svg?branch=master)](https://travis-ci.org/leofcoin/lib)\r\n[![](https://david-dm.org/leofcoin/lib.svg?style=flat-square)](https://david-dm.org/leofcoin/lib)\r\n[![](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/feross/standard)\r\n![](https://img.shields.io/badge/npm-%3E%3D3.0.0-orange.svg?style=flat-square)\r\n![](https://img.shields.io/badge/Node.js-%3E%3D6.0.0-orange.svg?style=flat-square)",
     "longname": "D:\\Workspace\\leofcoin\\lib\\README.md",
     "name": "./README.md",
     "static": true,
@@ -2593,7 +2621,7 @@
   },
   {
     "kind": "packageJSON",
-    "content": "{\r\n  \"name\": \"@leofcoin/lib\",\r\n  \"version\": \"0.1.0\",\r\n  \"main\": \"index.js\",\r\n  \"license\": \"MIT\",\r\n  \"private\": false,\r\n  \"scripts\": {\r\n    \"start\": \"node index.js\",\r\n    \"compile\": \"rollup -c\",\r\n    \"doc\": \"./node_modules/.bin/esdoc\"\r\n  },\r\n  \"description\": \"project template node\",\r\n  \"repository\": \"https://github.com/leofcoin/lib\",\r\n  \"author\": \"vandeurenglenn <vandeurenglenn@gmail.com>\",\r\n  \"dependencies\": {\r\n    \"@leofcoin/multi-wallet\": \"^2.0.0\",\r\n    \"cids\": \"^0.8.3\",\r\n    \"ipld-lfc\": \"^0.1.4\",\r\n    \"ipld-lfc-tx\": \"^0.3.3\"\r\n  },\r\n  \"devDependencies\": {\r\n    \"esdoc\": \"^1.1.0\",\r\n    \"esdoc-ecmascript-proposal-plugin\": \"^1.0.0\",\r\n    \"esdoc-standard-plugin\": \"^1.0.0\",\r\n    \"lfc-api\": \"^2.14.2\",\r\n    \"rollup\": \"^2.18.1\",\r\n    \"tape\": \"^5.0.1\"\r\n  },\r\n  \"homepage\": \"https://github.com/leofcoin/lib#readme\",\r\n  \"esdoc\": {\r\n    \"source\": \"./src/\",\r\n    \"destination\": \"./docs\",\r\n    \"plugins\": [\r\n      {\r\n        \"name\": \"esdoc-ecmascript-proposal-plugin\",\r\n        \"option\": {\r\n          \"classProperties\": true,\r\n          \"objectRestSpread\": true,\r\n          \"doExpressions\": true,\r\n          \"functionBind\": true,\r\n          \"functionSent\": true,\r\n          \"asyncGenerators\": true,\r\n          \"decorators\": true,\r\n          \"exportExtensions\": true,\r\n          \"dynamicImport\": true\r\n        }\r\n      },\r\n      {\r\n        \"name\": \"esdoc-standard-plugin\"\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
+    "content": "{\r\n  \"name\": \"@leofcoin/lib\",\r\n  \"version\": \"0.1.0\",\r\n  \"main\": \"index.js\",\r\n  \"license\": \"MIT\",\r\n  \"private\": false,\r\n  \"scripts\": {\r\n    \"test\": \"node test\",\r\n    \"start\": \"node index.js\",\r\n    \"compile\": \"rollup -c\",\r\n    \"doc\": \"./node_modules/.bin/esdoc\",\r\n    \"coverage\": \"nyc --reporter=lcov npm run test\",\r\n    \"coveralls\": \"cat ./coverage/lcov.info | coveralls\"\r\n  },\r\n  \"description\": \"project template node\",\r\n  \"repository\": \"https://github.com/leofcoin/lib\",\r\n  \"author\": \"vandeurenglenn <vandeurenglenn@gmail.com>\",\r\n  \"dependencies\": {\r\n    \"@leofcoin/multi-wallet\": \"^2.0.0\",\r\n    \"cids\": \"^0.8.3\",\r\n    \"ipld-lfc\": \"^0.2.1\",\r\n    \"ipld-lfc-tx\": \"^0.3.3\"\r\n  },\r\n  \"devDependencies\": {\r\n    \"coveralls\": \"^3.1.0\",\r\n    \"esdoc\": \"^1.1.0\",\r\n    \"esdoc-ecmascript-proposal-plugin\": \"^1.0.0\",\r\n    \"esdoc-standard-plugin\": \"^1.0.0\",\r\n    \"lfc-api\": \"^2.14.4\",\r\n    \"nyc\": \"^15.1.0\",\r\n    \"rollup\": \"^2.18.2\",\r\n    \"tape\": \"^5.0.1\"\r\n  },\r\n  \"homepage\": \"https://github.com/leofcoin/lib#readme\",\r\n  \"esdoc\": {\r\n    \"source\": \"./src/\",\r\n    \"destination\": \"./docs\",\r\n    \"plugins\": [\r\n      {\r\n        \"name\": \"esdoc-ecmascript-proposal-plugin\",\r\n        \"option\": {\r\n          \"classProperties\": true,\r\n          \"objectRestSpread\": true,\r\n          \"doExpressions\": true,\r\n          \"functionBind\": true,\r\n          \"functionSent\": true,\r\n          \"asyncGenerators\": true,\r\n          \"decorators\": true,\r\n          \"exportExtensions\": true,\r\n          \"dynamicImport\": true\r\n        }\r\n      },\r\n      {\r\n        \"name\": \"esdoc-standard-plugin\"\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
     "longname": "D:\\Workspace\\leofcoin\\lib\\package.json",
     "name": "package.json",
     "static": true,

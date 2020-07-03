@@ -35,7 +35,7 @@ const address = '8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY';
   // })
   const testChain = () => new Promise((resolve, reject) => {
     test('chain', async tape => {
-      tape.plan(8)
+      tape.plan(14)
       
       let value = await chain.getTransactions()
       tape.equals(value.length, 1, 'getTransactions')
@@ -60,6 +60,26 @@ const address = '8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY';
       
       value = await chain.getBalanceForAddress(address, 1)
       tape.equals(value, 0, 'getBalanceForAddress after block 1')
+      
+      value = await chain.nextBlockTransactions()
+      tape.equals(value.length, 0, 'nextBlockTransactions')
+      
+      value = await chain.longestChain()
+      tape.equals(value.index, 439, 'longestChain')
+      
+      value = await chain.lastBlock()
+      tape.equals(value.index, 439, 'lastBlock')
+      
+      value = await chain.nextBlock('8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY')
+      tape.equals(value.transactions[0].reward, 'mined', 'nextBlock')
+      
+      const hash = value.hash
+      
+      value = await chain.blockHash(value)
+      tape.equals(value, hash, 'blockHash')
+      
+      value = await chain.transactionHash(chain.chain[1].transactions[0])
+      tape.equals(value, 'z3vzxp8fU86s1epQKDDs762iscaKJU16ra3BkR86bJQb8jSGrnC', 'transactionHash')
       
       setTimeout(function () {
         resolve()

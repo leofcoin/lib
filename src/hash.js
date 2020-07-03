@@ -18,10 +18,10 @@ export default class Hash {
 	  return cid.toBaseEncodedString();
 	}
 	
-	async blockHash(block) {
-	  block = await new LFCNode(block);
-	  const cid = await util.cid(block.serialize())
-	  return hashFromMultihash(cid.toBaseEncodedString());
+	async blockHash(block) {		
+	  block = await new LFCNode({...block});
+	  const cid = await util.cid(await block.serialize())
+	  return this.hashFromMultihash(cid.toBaseEncodedString());
 	}
 	
 	/**

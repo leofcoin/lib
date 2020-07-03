@@ -29,16 +29,14 @@
 <nav class="navigation" data-ice="nav"><div>
   <ul>
     
-  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/chain.js~Chain.html">Chain</a></span></span></li>
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/block.js~Block.html">Block</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/chain.js~Chain.html">Chain</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors.js~Errors.html">Errors</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/hash.js~Hash.html">Hash</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/validate.js~Validate.html">Validate</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-lastBlock">lastBlock</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-longestChain">longestChain</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newBlock">newBlock</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newGenesisDAGNode">newGenesisDAGNode</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-nextBlock">nextBlock</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-createRewardTransaction">createRewardTransaction</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-block">block</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-hash">hash</a></span></span></li>
@@ -57,22 +55,56 @@
 
 <div class="content" data-ice="content"><h1 data-ice="title">src/transaction.js</h1>
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import Validator from &apos;./validate.js&apos;
-import Chain from &apos;./chain&apos;
 import Errors from &apos;./errors.js&apos;
 import Hash from &apos;./hash.js&apos;
 import { randomBytes } from &apos;crypto&apos;
 import MultiWallet from &apos;@leofcoin/multi-wallet&apos;
-import { network, consensusSubsidyInterval, reward } from &apos;./params.js&apos;;
+import { network, reward } from &apos;./params.js&apos;;
 import * as ipldLfcTx from &apos;ipld-lfc-tx&apos;;
 
 const { LFCTx, util } = ipldLfcTx
+
+/**
+ * Create transaction
+ *
+ * @param inputs
+ * @param outputs
+ * @param reward
+ * @return {{id: string, reward: boolean, inputs: *, outputs: *, hash: string}}
+ */
+const newTransaction = async (inputs, outputs, reward = null) =&gt; {
+  try {
+    const tx = new LFCTx({
+      id: randomBytes(32).toString(&apos;hex&apos;),
+      time: Math.floor(new Date().getTime() / 1000),
+      reward,
+      outputs,
+      inputs
+    });
+    // const cid = await util.cid(tx.serialize())
+    // await global.ipfs.dag.put(tx, {format: util.codec, hashAlg: util.defaultHashAlg, version: 1, baseFormat: &apos;base58btc&apos;})
+    return tx
+  } catch (e) {
+    throw e
+  }
+}
+
+/**
+ * Create reward transaction for block mining
+ *
+ * @param {string} address
+ * @param {number} height
+ * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}
+ */
+export const createRewardTransaction = async (address, amount) =&gt; {
+  return newTransaction([], [{index: 0, amount, address}], &apos;mined&apos;);
+}
 
 
 export default class Transaction {
   constructor() {
     this.validator = new Validator()
     this.isValid = this.validator.isValid
-    this.getUnspentForAddress = new Chain().getUnspentForAddress
     this.TransactionError = new Errors().TransactionError
     const hash = new Hash()
     this.transactionInputHash = hash.transactionInputHash
@@ -154,55 +186,6 @@ export default class Transaction {
   }
   
   /**
-   * Create transaction
-   *
-   * @param inputs
-   * @param outputs
-   * @param reward
-   * @return {{id: string, reward: boolean, inputs: *, outputs: *, hash: string}}
-   */
-  async newTransaction(inputs, outputs, reward = null) {
-  	try {
-  		const tx = new LFCTx({
-  			id: randomBytes(32).toString(&apos;hex&apos;),
-  			time: Math.floor(new Date().getTime() / 1000),
-  			reward,
-  			outputs,
-  			inputs
-  		});
-  		// const cid = await util.cid(tx.serialize())
-  		// await global.ipfs.dag.put(tx, {format: util.codec, hashAlg: util.defaultHashAlg, version: 1, baseFormat: &apos;base58btc&apos;})
-  		return tx
-  	} catch (e) {
-  		throw e
-  	}
-  }
-  
-  /**
-   * @param {number} height
-   */
-  consensusSubsidy(height) {
-  	const quarterlings = height / consensusSubsidyInterval;
-  	if (quarterlings &gt;= 256) {
-  		return 0;
-  	}
-  	//subsidy is lowered by 12.5 %, approx every year
-  	const minus = quarterlings &gt;= 1 ? (quarterlings * (reward / 256)) : 0;
-  	return reward - minus;
-  }
-  
-  /**
-   * Create reward transaction for block mining
-   *
-   * @param {string} address
-   * @param {number} height
-   * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}
-   */
-  async createRewardTransaction(address, height) {
-  	return this.newTransaction([], [{index: 0, amount: this.consensusSubsidy(height), address}], &apos;mined&apos;);
-  };
-  
-  /**
    * Verify signature
    *
    * @param {string} address - signer address
@@ -242,9 +225,9 @@ export default class Transaction {
    * @param amount
    * @return {id, reward, inputs, outputs, hash,}
    */
-  async buildTransaction(wallet, toAddress, amount) {
+  async buildTransaction(wallet, toAddress, amount, unspent) {
   	let inputsAmount = 0;
-  	const unspent = await this.getUnspentForAddress(wallet.address);
+  	// const unspent = await this.getUnspentForAddress(wallet.address);
   	const inputsRaw = unspent.filter(i =&gt; {
   		const more = inputsAmount &lt; amount;
   		if (more) inputsAmount += i.amount;

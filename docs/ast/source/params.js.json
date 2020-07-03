@@ -1,28 +1,28 @@
 {
   "type": "File",
   "start": 0,
-  "end": 632,
+  "end": 724,
   "loc": {
     "start": {
       "line": 1,
       "column": 0
     },
     "end": {
-      "line": 13,
+      "line": 18,
       "column": 33
     }
   },
   "program": {
     "type": "Program",
     "start": 0,
-    "end": 632,
+    "end": 724,
     "loc": {
       "start": {
         "line": 1,
         "column": 0
       },
       "end": {
-        "line": 13,
+        "line": 18,
         "column": 33
       }
     },
@@ -548,7 +548,7 @@
       {
         "type": "ExportNamedDeclaration",
         "start": 445,
-        "end": 597,
+        "end": 596,
         "loc": {
           "start": {
             "line": 6,
@@ -556,7 +556,7 @@
           },
           "end": {
             "line": 12,
-            "column": 2
+            "column": 1
           }
         },
         "specifiers": [],
@@ -564,7 +564,7 @@
         "declaration": {
           "type": "VariableDeclaration",
           "start": 452,
-          "end": 597,
+          "end": 596,
           "loc": {
             "start": {
               "line": 6,
@@ -572,7 +572,7 @@
             },
             "end": {
               "line": 12,
-              "column": 2
+              "column": 1
             }
           },
           "declarations": [
@@ -1028,28 +1028,83 @@
                         "raw": "1077701"
                       },
                       "value": 1077701
-                    }
+                    },
+                    "trailingComments": [
+                      {
+                        "type": "CommentBlock",
+                        "value": "*\r\n * network (hardcoded for now)\r\n * @dev change to 'leofcoin:olivia' for testnet\r\n ",
+                        "start": 600,
+                        "end": 689,
+                        "loc": {
+                          "start": {
+                            "line": 14,
+                            "column": 0
+                          },
+                          "end": {
+                            "line": 17,
+                            "column": 3
+                          }
+                        }
+                      }
+                    ]
                   }
-                ]
-              }
+                ],
+                "trailingComments": null
+              },
+              "trailingComments": null
             }
           ],
           "kind": "const",
-          "leadingComments": [],
-          "trailingComments": []
-        }
+          "trailingComments": [
+            {
+              "type": "CommentBlock",
+              "value": "*\r\n * network (hardcoded for now)\r\n * @dev change to 'leofcoin:olivia' for testnet\r\n ",
+              "start": 600,
+              "end": 689,
+              "loc": {
+                "start": {
+                  "line": 14,
+                  "column": 0
+                },
+                "end": {
+                  "line": 17,
+                  "column": 3
+                }
+              }
+            }
+          ],
+          "leadingComments": []
+        },
+        "trailingComments": [
+          {
+            "type": "CommentBlock",
+            "value": "*\r\n * network (hardcoded for now)\r\n * @dev change to 'leofcoin:olivia' for testnet\r\n ",
+            "start": 600,
+            "end": 689,
+            "loc": {
+              "start": {
+                "line": 14,
+                "column": 0
+              },
+              "end": {
+                "line": 17,
+                "column": 3
+              }
+            }
+          }
+        ]
       },
       {
         "type": "ExportNamedDeclaration",
-        "start": 599,
-        "end": 632,
+        "start": 691,
+        "end": 724,
         "loc": {
           "start": {
-            "line": 13,
+            "line": 18,
             "column": 0
           },
           "end": {
-            "line": 13,
+            "line": 18,
             "column": 33
           }
         },
@@ -1057,44 +1112,44 @@
         "source": null,
         "declaration": {
           "type": "VariableDeclaration",
-          "start": 606,
-          "end": 632,
+          "start": 698,
+          "end": 724,
           "loc": {
             "start": {
-              "line": 13,
+              "line": 18,
               "column": 7
             },
             "end": {
-              "line": 13,
+              "line": 18,
               "column": 33
             }
           },
           "declarations": [
             {
               "type": "VariableDeclarator",
-              "start": 612,
-              "end": 632,
+              "start": 704,
+              "end": 724,
               "loc": {
                 "start": {
-                  "line": 13,
+                  "line": 18,
                   "column": 13
                 },
                 "end": {
-                  "line": 13,
+                  "line": 18,
                   "column": 33
                 }
               },
               "id": {
                 "type": "Identifier",
-                "start": 612,
-                "end": 619,
+                "start": 704,
+                "end": 711,
                 "loc": {
                   "start": {
-                    "line": 13,
+                    "line": 18,
                     "column": 13
                   },
                   "end": {
-                    "line": 13,
+                    "line": 18,
                     "column": 20
                   },
                   "identifierName": "network"
@@ -1103,15 +1158,15 @@
               },
               "init": {
                 "type": "StringLiteral",
-                "start": 622,
-                "end": 632,
+                "start": 714,
+                "end": 724,
                 "loc": {
                   "start": {
-                    "line": 13,
+                    "line": 18,
                     "column": 23
                   },
                   "end": {
-                    "line": 13,
+                    "line": 18,
                     "column": 33
                   }
                 },
@@ -1145,6 +1200,22 @@
         "end": {
           "line": 3,
           "column": 63
+        }
+      }
+    },
+    {
+      "type": "CommentBlock",
+      "value": "*\r\n * network (hardcoded for now)\r\n * @dev change to 'leofcoin:olivia' for testnet\r\n ",
+      "start": 600,
+      "end": 689,
+      "loc": {
+        "start": {
+          "line": 14,
+          "column": 0
+        },
+        "end": {
+          "line": 17,
+          "column": 3
         }
       }
     }
@@ -2917,28 +2988,18 @@
       }
     },
     {
-      "type": {
-        "label": ";",
-        "beforeExpr": true,
-        "startsExpr": false,
-        "rightAssociative": false,
-        "isLoop": false,
-        "isAssign": false,
-        "prefix": false,
-        "postfix": false,
-        "binop": null,
-        "updateContext": null
-      },
-      "start": 596,
-      "end": 597,
+      "type": "CommentBlock",
+      "value": "*\r\n * network (hardcoded for now)\r\n * @dev change to 'leofcoin:olivia' for testnet\r\n ",
+      "start": 600,
+      "end": 689,
       "loc": {
         "start": {
-          "line": 12,
-          "column": 1
+          "line": 14,
+          "column": 0
         },
         "end": {
-          "line": 12,
-          "column": 2
+          "line": 17,
+          "column": 3
         }
       }
     },
@@ -2957,15 +3018,15 @@
         "updateContext": null
       },
       "value": "export",
-      "start": 599,
-      "end": 605,
+      "start": 691,
+      "end": 697,
       "loc": {
         "start": {
-          "line": 13,
+          "line": 18,
           "column": 0
         },
         "end": {
-          "line": 13,
+          "line": 18,
           "column": 6
         }
       }
@@ -2985,15 +3046,15 @@
         "updateContext": null
       },
       "value": "const",
-      "start": 606,
-      "end": 611,
+      "start": 698,
+      "end": 703,
       "loc": {
         "start": {
-          "line": 13,
+          "line": 18,
           "column": 7
         },
         "end": {
-          "line": 13,
+          "line": 18,
           "column": 12
         }
       }
@@ -3011,15 +3072,15 @@
         "binop": null
       },
       "value": "network",
-      "start": 612,
-      "end": 619,
+      "start": 704,
+      "end": 711,
       "loc": {
         "start": {
-          "line": 13,
+          "line": 18,
           "column": 13
         },
         "end": {
-          "line": 13,
+          "line": 18,
           "column": 20
         }
       }
@@ -3038,15 +3099,15 @@
         "updateContext": null
       },
       "value": "=",
-      "start": 620,
-      "end": 621,
+      "start": 712,
+      "end": 713,
       "loc": {
         "start": {
-          "line": 13,
+          "line": 18,
           "column": 21
         },
         "end": {
-          "line": 13,
+          "line": 18,
           "column": 22
         }
       }
@@ -3065,15 +3126,15 @@
         "updateContext": null
       },
       "value": "leofcoin",
-      "start": 622,
-      "end": 632,
+      "start": 714,
+      "end": 724,
       "loc": {
         "start": {
-          "line": 13,
+          "line": 18,
           "column": 23
         },
         "end": {
-          "line": 13,
+          "line": 18,
           "column": 33
         }
       }
@@ -3091,15 +3152,15 @@
         "binop": null,
         "updateContext": null
       },
-      "start": 632,
-      "end": 632,
+      "start": 724,
+      "end": 724,
       "loc": {
         "start": {
-          "line": 13,
+          "line": 18,
           "column": 33
         },
         "end": {
-          "line": 13,
+          "line": 18,
           "column": 33
         }
       }
