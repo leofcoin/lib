@@ -65,10 +65,10 @@ const address = '8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY';
       tape.equals(value.length, 0, 'nextBlockTransactions')
       
       value = await chain.longestChain()
-      tape.equals(value.index, 439, 'longestChain')
+      tape.equals(value.index, 0, 'longestChain')
       
       value = await chain.lastBlock()
-      tape.equals(value.index, 439, 'lastBlock')
+      tape.equals(value.index, 0, 'lastBlock')
       
       value = await chain.nextBlock('8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY')
       tape.equals(value.transactions[0].reward, 'mined', 'nextBlock')
