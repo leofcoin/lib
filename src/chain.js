@@ -252,9 +252,16 @@ export default class Chain extends Hash{
             _blocks.push({block, path: path[0] || path})        
           }        
         }
-        const localIndex = await chainStore.get('localIndex')
-        const localHash = await chainStore.get('localBlock')
-        console.log({localHash});
+        
+        let localIndex
+        let localHash
+        try {
+          localIndex = await chainStore.get('localIndex')
+          localHash = await chainStore.get('localBlock')
+        } catch (e) {
+          localIndex = await chainStore.put('localIndex', 0)
+          localHash = await chainStore.put('localBlock', genesisCID)
+        }
         const history = {}
         _blocks = _blocks.reduce((set, {block, path}) => {
           if (set.block.index < block.index) {
