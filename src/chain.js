@@ -278,7 +278,7 @@ export default class Chain extends Hash{
         
       } catch (e) {
         console.warn(e);
-        debug(e)
+        // debug(e)
         reject(e)
       }
     })
