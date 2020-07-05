@@ -224,9 +224,7 @@ export default class Chain extends Block {
     return new Promise(async (resolve, reject) => {
       try {
         let peers = await globalThis.ipfs.swarm.peers()
-        console.log(peers);
         peers = await filterPeers(peers, globalThis.peerId)
-        console.log(peers);
         // if (peers.length < 2) return setTimeout(async () => {
         //   const res = await longestChain()
         //   resolve(res)
@@ -260,14 +258,16 @@ export default class Chain extends Block {
           localIndex = await chainStore.get('localIndex')
           localHash = await chainStore.get('localBlock')
         } catch (e) {
-          localIndex = await chainStore.put('localIndex', 0)
-          localHash = await chainStore.put('localBlock', genesisCID)
+          localIndex = 0;
+          localHash = genesisCID;
+          await chainStore.put('localIndex', 0)
+          await chainStore.put('localBlock', genesisCID)
         }
         const history = {}
         _blocks = _blocks.reduce((set, {block, path}) => {
           if (set.block.index < block.index) {
             history[set.block.index] = set;
-            set.block = block
+            set.block.index = block.index
             set.hash = path.replace('/ipfs/', '')
             set.seen = 1
           } else if (set.block.index === block.index) {
