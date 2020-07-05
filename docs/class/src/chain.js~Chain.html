@@ -73,7 +73,7 @@
 
   
   
-  <div class="flat-list" data-ice="extendsChain"><h4>Extends:</h4><div><span>src/validate.js~Validator</span> &#x2192; <span><a href="class/src/hash.js~Hash.html">Hash</a></span> &#x2192; Chain</div></div>
+  <div class="flat-list" data-ice="extendsChain"><h4>Extends:</h4><div><span>Validator</span> &#x2192; <span><a href="class/src/hash.js~Hash.html">Hash</a></span> &#x2192; <span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span> &#x2192; <span><a href="class/src/block.js~Block.html">Block</a></span> &#x2192; Chain</div></div>
   
   
   
@@ -836,6 +836,280 @@
   </tr>
 </tbody>
 </table>
+
+<table class="summary" data-ice="summary">
+  <thead><tr><td data-ice="title" colspan="3"><span class="toggle closed"></span> From class <span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></td></tr></thead>
+  <tbody>
+  
+  <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          <span data-ice="async">async</span>
+          
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-buildTransaction">buildTransaction</a></span></span><span class="code" data-ice="signature">(wallet: <span>*</span>, toAddress: <span>*</span>, amount: <span>*</span>): <span>id, reward, inputs, outputs, hash,</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Create a transaction</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-createInput">createInput</a></span></span><span class="code" data-ice="signature">(transaction: <span>*</span>, index: <span>*</span>, amount: <span>*</span>, wallet: <span>*</span>): <span>transaction, index, amount, address</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Create and sign input</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          <span data-ice="async">async</span>
+          
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-createRewardTransaction">createRewardTransaction</a></span></span><span class="code" data-ice="signature">(address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, height: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>): <span>id: string, reward: boolean, inputs: *, outputs: *, hash: string</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Create reward transaction for block mining</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          <span data-ice="async">async</span>
+          
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-newTransaction">newTransaction</a></span></span><span class="code" data-ice="signature">(inputs: <span>*</span>, outputs: <span>*</span>, reward: <span>*</span>): {id: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, reward: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span>, inputs: <span>*</span>, outputs: <span>*</span>, hash: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>}</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Create transaction</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          <span data-ice="async">async</span>
+          
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-validateTransaction">validateTransaction</a></span></span><span class="code" data-ice="signature">(multihash: <span>*</span>, transaction: <span>*</span>, unspent: <span>*</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>validate transaction</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          <span data-ice="async">async</span>
+          
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-validateTransactions">validateTransactions</a></span></span><span class="code" data-ice="signature">(transactions: <span>array</span>, unspent: <span>*</span>)</span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>validate transactions list for current block</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-verifySignature">verifySignature</a></span></span><span class="code" data-ice="signature">(address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, signature: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, hash: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>): <span>*</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Verify signature</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+</tbody>
+</table>
+
+<table class="summary" data-ice="summary">
+  <thead><tr><td data-ice="title" colspan="3"><span class="toggle closed"></span> From class <span><a href="class/src/block.js~Block.html">Block</a></span></td></tr></thead>
+  <tbody>
+  
+  <tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          
+          
+          <span class="code" data-ice="name"><span><a href="class/src/block.js~Block.html#instance-method-goodBlock">goodBlock</a></span></span><span class="code" data-ice="signature">(block: <span>*</span>, difficulty: <span>*</span>): <span>*</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+<tr data-ice="target">
+    <td>
+      <span class="access" data-ice="access">public</span>
+      
+      
+      
+      <span class="override" data-ice="override"></span>
+    </td>
+    <td>
+      <div>
+        <p>
+          
+          <span data-ice="async">async</span>
+          
+          <span class="code" data-ice="name"><span><a href="class/src/block.js~Block.html#instance-method-newGenesisDAGNode">newGenesisDAGNode</a></span></span><span class="code" data-ice="signature">(difficulty: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>, address: <span>*</span>): <span>*</span></span>
+        </p>
+      </div>
+      <div>
+        
+        
+        <div data-ice="description"><p>Create a new genesis block</p>
+</div>
+      </div>
+    </td>
+    <td>
+      
+      
+    </td>
+  </tr>
+</tbody>
+</table>
 </div>
 
 
@@ -863,7 +1137,7 @@
   
   
 
-  <div data-ice="override"><h4>Override:</h4><span><a href="class/src/hash.js~Hash.html#instance-constructor-constructor">Hash#constructor</a></span></div>
+  <div data-ice="override"><h4>Override:</h4><span><a href="class/src/block.js~Block.html#instance-constructor-constructor">Block#constructor</a></span></div>
 
   <div data-ice="properties">
 </div>

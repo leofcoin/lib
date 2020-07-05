@@ -3,6 +3,12 @@ import ipldLfc from 'ipld-lfc';
 
 const { LFCNode } = ipldLfc
 
+
+/**
+ * @extends {Transaction}
+ * @example
+ * const block = new Block()
+ */
 export default class Block extends Transaction {
   constructor() {
     super()

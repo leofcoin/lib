@@ -22,7 +22,7 @@ const filterPeers = (peers, localPeer) => {
 }
 
 /**
- * @extends {Hash}
+ * @extends {Block}
  * @example
  * const chain = new Chain()
  */

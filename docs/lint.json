@@ -83,35 +83,35 @@
     "filePath": "src/transaction.js",
     "lines": [
       {
-        "lineNumber": 43,
+        "lineNumber": 46,
         "line": "  /**\r"
       },
       {
-        "lineNumber": 44,
+        "lineNumber": 47,
         "line": "   * Create reward transaction for block mining\r"
       },
       {
-        "lineNumber": 45,
+        "lineNumber": 48,
         "line": "   *\r"
       },
       {
-        "lineNumber": 46,
+        "lineNumber": 49,
         "line": "   * @param {string} address\r"
       },
       {
-        "lineNumber": 47,
+        "lineNumber": 50,
         "line": "   * @param {number} height\r"
       },
       {
-        "lineNumber": 48,
+        "lineNumber": 51,
         "line": "   * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}\r"
       },
       {
-        "lineNumber": 49,
+        "lineNumber": 52,
         "line": "   */\r"
       },
       {
-        "lineNumber": 50,
+        "lineNumber": 53,
         "line": "  async createRewardTransaction(address, amount) {\r"
       }
     ],
@@ -129,39 +129,39 @@
     "filePath": "src/transaction.js",
     "lines": [
       {
-        "lineNumber": 160,
+        "lineNumber": 163,
         "line": "  /**\r"
       },
       {
-        "lineNumber": 161,
+        "lineNumber": 164,
         "line": "   * Create a transaction\r"
       },
       {
-        "lineNumber": 162,
+        "lineNumber": 165,
         "line": "   *\r"
       },
       {
-        "lineNumber": 163,
+        "lineNumber": 166,
         "line": "   * @param wallet\r"
       },
       {
-        "lineNumber": 164,
+        "lineNumber": 167,
         "line": "   * @param toAddress\r"
       },
       {
-        "lineNumber": 165,
+        "lineNumber": 168,
         "line": "   * @param amount\r"
       },
       {
-        "lineNumber": 166,
+        "lineNumber": 169,
         "line": "   * @return {id, reward, inputs, outputs, hash,}\r"
       },
       {
-        "lineNumber": 167,
+        "lineNumber": 170,
         "line": "   */\r"
       },
       {
-        "lineNumber": 168,
+        "lineNumber": 171,
         "line": "  async buildTransaction(wallet, toAddress, amount, unspent) {\r"
       }
     ],

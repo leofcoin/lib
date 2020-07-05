@@ -8,8 +8,11 @@ import * as ipldLfcTx from 'ipld-lfc-tx';
 
 const { LFCTx, util } = ipldLfcTx
 
-
-
+/**
+ * @extends {Hash}
+ * @example
+ * const transaction = new Transaction()
+ */
 export default class Transaction extends Hash {
   constructor() {
     super()

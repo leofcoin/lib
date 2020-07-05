@@ -1,6 +1,11 @@
 import {object, number, array, string } from '@hapi/joi';
 import Errors from './errors'
 
+/**
+ * @extends {Errors}
+ * @example
+ * const validator = new Validator()
+ */
 export default class Validate extends Errors {
 	constructor() {
 		super()

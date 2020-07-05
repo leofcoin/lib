@@ -55,6 +55,10 @@
 <div class="content" data-ice="content"><h1 data-ice="title">src/errors.js</h1>
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">const invalid = (name, text) =&gt; new Error(`Invalid ${name}: ${text}`);
 // TODO: show notification
+/**
+ * @example
+ * const errors = new Errors()
+ */
 export default class Errors {
   BlockError(text) {
     invalid(&apos;block&apos;, text)

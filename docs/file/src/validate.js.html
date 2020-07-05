@@ -56,6 +56,11 @@
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import {object, number, array, string } from &apos;@hapi/joi&apos;;
 import Errors from &apos;./errors&apos;
 
+/**
+ * @extends {Errors}
+ * @example
+ * const validator = new Validator()
+ */
 export default class Validate extends Errors {
 	constructor() {
 		super()

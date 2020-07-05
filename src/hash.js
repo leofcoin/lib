@@ -5,6 +5,11 @@ import Validator from './validate'
 
 const { LFCNode, util } = ipldLfc
 
+/**
+ * @extends {Validator}
+ * @example
+ * const hash = new Hash()
+ */
 export default class Hash extends Validator {
 	constructor() {
 		super()
