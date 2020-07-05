@@ -8,51 +8,48 @@ import * as ipldLfcTx from 'ipld-lfc-tx';
 
 const { LFCTx, util } = ipldLfcTx
 
-/**
- * Create transaction
- *
- * @param inputs
- * @param outputs
- * @param reward
- * @return {{id: string, reward: boolean, inputs: *, outputs: *, hash: string}}
- */
-const newTransaction = async (inputs, outputs, reward = null) => {
-  try {
-    const tx = new LFCTx({
-      id: randomBytes(32).toString('hex'),
-      time: Math.floor(new Date().getTime() / 1000),
-      reward,
-      outputs,
-      inputs
-    });
-    // const cid = await util.cid(tx.serialize())
-    // await global.ipfs.dag.put(tx, {format: util.codec, hashAlg: util.defaultHashAlg, version: 1, baseFormat: 'base58btc'})
-    return tx
-  } catch (e) {
-    throw e
-  }
-}
-
-/**
- * Create reward transaction for block mining
- *
- * @param {string} address
- * @param {number} height
- * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}
- */
-export const createRewardTransaction = async (address, amount) => {
-  return newTransaction([], [{index: 0, amount, address}], 'mined');
-}
 
 
-export default class Transaction {
+export default class Transaction extends Hash {
   constructor() {
-    this.validator = new Validator()
-    this.isValid = this.validator.isValid
-    this.TransactionError = new Errors().TransactionError
-    const hash = new Hash()
-    this.transactionInputHash = hash.transactionInputHash
-    this.transactionHash = hash.transactionHash
+    super()
+  }
+  
+  
+  /**
+   * Create transaction
+   *
+   * @param inputs
+   * @param outputs
+   * @param reward
+   * @return {{id: string, reward: boolean, inputs: *, outputs: *, hash: string}}
+   */
+  async newTransaction(inputs, outputs, reward = null) {
+    try {
+      const tx = new LFCTx({
+        id: randomBytes(32).toString('hex'),
+        time: Math.floor(new Date().getTime() / 1000),
+        reward,
+        outputs,
+        inputs
+      });
+      // const cid = await util.cid(tx.serialize())
+      // await global.ipfs.dag.put(tx, {format: util.codec, hashAlg: util.defaultHashAlg, version: 1, baseFormat: 'base58btc'})
+      return tx
+    } catch (e) {
+      throw e
+    }
+  }
+  
+  /**
+   * Create reward transaction for block mining
+   *
+   * @param {string} address
+   * @param {number} height
+   * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}
+   */
+  async createRewardTransaction(address, amount) {
+    return this.newTransaction([], [{index: 0, amount, address}], 'mined');
   }
   
   /**

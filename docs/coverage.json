@@ -1,40 +1,37 @@
 {
-  "coverage": "22.36%",
-  "expectCount": 76,
-  "actualCount": 17,
+  "coverage": "26.08%",
+  "expectCount": 69,
+  "actualCount": 18,
   "files": {
     "src/block.js": {
-      "expectCount": 6,
+      "expectCount": 5,
       "actualCount": 1,
       "undocumentLines": [
+        4,
         6,
-        10,
-        11,
-        12,
-        16
+        7,
+        12
       ]
     },
     "src/chain.js": {
-      "expectCount": 24,
-      "actualCount": 7,
+      "expectCount": 23,
+      "actualCount": 8,
       "undocumentLines": [
-        7,
-        16,
-        27,
-        28,
+        4,
+        13,
         30,
-        33,
-        35,
-        37,
-        40,
-        67,
-        89,
-        151,
-        162,
-        222,
-        287,
-        296,
-        334
+        34,
+        36,
+        38,
+        41,
+        68,
+        90,
+        152,
+        163,
+        223,
+        295,
+        304,
+        342
       ]
     },
     "src/errors.js": {
@@ -52,12 +49,12 @@
       "expectCount": 8,
       "actualCount": 2,
       "undocumentLines": [
-        4,
         6,
-        7,
-        11,
-        16,
-        21
+        8,
+        9,
+        13,
+        18,
+        23
       ]
     },
     "src/index.js": {
@@ -86,28 +83,23 @@
       ]
     },
     "src/transaction.js": {
-      "expectCount": 15,
+      "expectCount": 10,
       "actualCount": 7,
       "undocumentLines": [
         9,
-        48,
-        49,
-        50,
-        51,
-        52,
-        54,
-        55
+        13,
+        14
       ]
     },
     "src/validate.js": {
       "expectCount": 5,
       "actualCount": 0,
       "undocumentLines": [
-        3,
         4,
-        37,
-        43,
-        47
+        5,
+        39,
+        45,
+        49
       ]
     }
   }

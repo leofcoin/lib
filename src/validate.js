@@ -1,7 +1,9 @@
 import {object, number, array, string } from '@hapi/joi';
+import Errors from './errors'
 
-export default class Validate {
+export default class Validate extends Errors {
 	constructor() {
+		super()
 		
 		const block = object().keys({
 			index: number(),

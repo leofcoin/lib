@@ -1,15 +1,11 @@
-import { GENESISBLOCK, genesisCID } from './params';
 import Transaction from './transaction'
-import Hash from './hash';
 import ipldLfc from 'ipld-lfc';
 
 const { LFCNode } = ipldLfc
 
-
-
-export default class Block {
+export default class Block extends Transaction {
   constructor() {
-    this.blockHash = new Hash().blockHash
+    super()
   }
   
   

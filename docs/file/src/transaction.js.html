@@ -35,7 +35,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/hash.js~Hash.html">Hash</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/validate.js~Validate.html">Validate</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-createRewardTransaction">createRewardTransaction</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-block">block</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span></li>
@@ -64,51 +63,48 @@ import * as ipldLfcTx from &apos;ipld-lfc-tx&apos;;
 
 const { LFCTx, util } = ipldLfcTx
 
-/**
- * Create transaction
- *
- * @param inputs
- * @param outputs
- * @param reward
- * @return {{id: string, reward: boolean, inputs: *, outputs: *, hash: string}}
- */
-const newTransaction = async (inputs, outputs, reward = null) =&gt; {
-  try {
-    const tx = new LFCTx({
-      id: randomBytes(32).toString(&apos;hex&apos;),
-      time: Math.floor(new Date().getTime() / 1000),
-      reward,
-      outputs,
-      inputs
-    });
-    // const cid = await util.cid(tx.serialize())
-    // await global.ipfs.dag.put(tx, {format: util.codec, hashAlg: util.defaultHashAlg, version: 1, baseFormat: &apos;base58btc&apos;})
-    return tx
-  } catch (e) {
-    throw e
-  }
-}
-
-/**
- * Create reward transaction for block mining
- *
- * @param {string} address
- * @param {number} height
- * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}
- */
-export const createRewardTransaction = async (address, amount) =&gt; {
-  return newTransaction([], [{index: 0, amount, address}], &apos;mined&apos;);
-}
 
 
-export default class Transaction {
+export default class Transaction extends Hash {
   constructor() {
-    this.validator = new Validator()
-    this.isValid = this.validator.isValid
-    this.TransactionError = new Errors().TransactionError
-    const hash = new Hash()
-    this.transactionInputHash = hash.transactionInputHash
-    this.transactionHash = hash.transactionHash
+    super()
+  }
+  
+  
+  /**
+   * Create transaction
+   *
+   * @param inputs
+   * @param outputs
+   * @param reward
+   * @return {{id: string, reward: boolean, inputs: *, outputs: *, hash: string}}
+   */
+  async newTransaction(inputs, outputs, reward = null) {
+    try {
+      const tx = new LFCTx({
+        id: randomBytes(32).toString(&apos;hex&apos;),
+        time: Math.floor(new Date().getTime() / 1000),
+        reward,
+        outputs,
+        inputs
+      });
+      // const cid = await util.cid(tx.serialize())
+      // await global.ipfs.dag.put(tx, {format: util.codec, hashAlg: util.defaultHashAlg, version: 1, baseFormat: &apos;base58btc&apos;})
+      return tx
+    } catch (e) {
+      throw e
+    }
+  }
+  
+  /**
+   * Create reward transaction for block mining
+   *
+   * @param {string} address
+   * @param {number} height
+   * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}
+   */
+  async createRewardTransaction(address, amount) {
+    return this.newTransaction([], [{index: 0, amount, address}], &apos;mined&apos;);
   }
   
   /**

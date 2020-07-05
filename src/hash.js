@@ -1,11 +1,13 @@
 import IPLDLFCTx from 'ipld-lfc-tx'
 import ipldLfc from 'ipld-lfc'
 import CID from 'cids'
+import Validator from './validate'
+
 const { LFCNode, util } = ipldLfc
 
-export default class Hash {
+export default class Hash extends Validator {
 	constructor() {
-		
+		super()
 	}
 	
 	hashFromMultihash(multihash) {

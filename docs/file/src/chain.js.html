@@ -35,7 +35,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/hash.js~Hash.html">Hash</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/validate.js~Validate.html">Validate</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-createRewardTransaction">createRewardTransaction</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-block">block</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span></li>
@@ -54,11 +53,8 @@
 </nav>
 
 <div class="content" data-ice="content"><h1 data-ice="title">src/chain.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { GENESISBLOCK, genesisCID } from &apos;./params&apos;
-import Validator from &apos;./validate&apos;
-import { createRewardTransaction } from &apos;./transaction&apos;
-import Hash from &apos;./hash&apos;
-import { consensusSubsidyInterval, reward } from &apos;./params.js&apos;;
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import { GENESISBLOCK, genesisCID, consensusSubsidyInterval, reward } from &apos;./params&apos;
+import Block from &apos;./block&apos;
 
 const invalidTransactions = {};
 
@@ -80,10 +76,14 @@ const filterPeers = (peers, localPeer) =&gt; {
   }, [])
 }
 
-export default class Chain extends Hash{
+/**
+ * @extends {Hash}
+ * @example
+ * const chain = new Chain()
+ */
+export default class Chain extends Block {
   constructor() {
     super()
-    this.validateTransaction = new Validator().validateTransaction
   }
   
   get chain() { return globalThis.chain }
@@ -308,9 +308,16 @@ export default class Chain extends Hash{
             _blocks.push({block, path: path[0] || path})        
           }        
         }
-        const localIndex = await chainStore.get(&apos;localIndex&apos;)
-        const localHash = await chainStore.get(&apos;localBlock&apos;)
-        console.log({localHash});
+        
+        let localIndex
+        let localHash
+        try {
+          localIndex = await chainStore.get(&apos;localIndex&apos;)
+          localHash = await chainStore.get(&apos;localBlock&apos;)
+        } catch (e) {
+          localIndex = await chainStore.put(&apos;localIndex&apos;, 0)
+          localHash = await chainStore.put(&apos;localBlock&apos;, genesisCID)
+        }
         const history = {}
         _blocks = _blocks.reduce((set, {block, path}) =&gt; {
           if (set.block.index &lt; block.index) {
@@ -334,7 +341,7 @@ export default class Chain extends Hash{
         
       } catch (e) {
         console.warn(e);
-        debug(e)
+        // debug(e)
         reject(e)
       }
     })
@@ -384,7 +391,7 @@ export default class Chain extends Hash{
   	 */
   async newBlock({transactions = [], previousBlock, address}) {
   	const index = previousBlock.index + 1
-  	const minedTx = await createRewardTransaction(address, this.consensusSubsidy(index))
+  	const minedTx = await this.createRewardTransaction(address, this.consensusSubsidy(index))
   	transactions.push(minedTx.toJSON());
     console.log({transactions});
   	this.data = {

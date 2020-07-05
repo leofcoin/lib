@@ -72,12 +72,6 @@ window.esdocSearchIndex = [
     "variable"
   ],
   [
-    "@leofcoin/lib/src/transaction.js~createrewardtransaction",
-    "function/index.html#static-function-createRewardTransaction",
-    "<span>createRewardTransaction</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/transaction.js</span>",
-    "function"
-  ],
-  [
     "@leofcoin/lib/src/index.js~errors",
     "variable/index.html#static-variable-errors",
     "<span>errors</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/index.js</span>",
@@ -408,12 +402,6 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
-    "src/block.js~block#blockhash",
-    "class/src/block.js~Block.html#instance-member-blockHash",
-    "src/block.js~Block#blockHash",
-    "member"
-  ],
-  [
     "src/block.js~block#constructor",
     "class/src/block.js~Block.html#instance-constructor-constructor",
     "src/block.js~Block#constructor",
@@ -558,12 +546,6 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/chain.js~chain#validatetransaction",
-    "class/src/chain.js~Chain.html#instance-member-validateTransaction",
-    "src/chain.js~Chain#validateTransaction",
-    "member"
-  ],
-  [
     "src/errors.js",
     "file/src/errors.js.html",
     "src/errors.js",
@@ -648,12 +630,6 @@ window.esdocSearchIndex = [
     "file"
   ],
   [
-    "src/transaction.js~transaction#transactionerror",
-    "class/src/transaction.js~Transaction.html#instance-member-TransactionError",
-    "src/transaction.js~Transaction#TransactionError",
-    "member"
-  ],
-  [
     "src/transaction.js~transaction#buildtransaction",
     "class/src/transaction.js~Transaction.html#instance-method-buildTransaction",
     "src/transaction.js~Transaction#buildTransaction",
@@ -672,22 +648,16 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/transaction.js~transaction#isvalid",
-    "class/src/transaction.js~Transaction.html#instance-member-isValid",
-    "src/transaction.js~Transaction#isValid",
-    "member"
+    "src/transaction.js~transaction#createrewardtransaction",
+    "class/src/transaction.js~Transaction.html#instance-method-createRewardTransaction",
+    "src/transaction.js~Transaction#createRewardTransaction",
+    "method"
   ],
   [
-    "src/transaction.js~transaction#transactionhash",
-    "class/src/transaction.js~Transaction.html#instance-member-transactionHash",
-    "src/transaction.js~Transaction#transactionHash",
-    "member"
-  ],
-  [
-    "src/transaction.js~transaction#transactioninputhash",
-    "class/src/transaction.js~Transaction.html#instance-member-transactionInputHash",
-    "src/transaction.js~Transaction#transactionInputHash",
-    "member"
+    "src/transaction.js~transaction#newtransaction",
+    "class/src/transaction.js~Transaction.html#instance-method-newTransaction",
+    "src/transaction.js~Transaction#newTransaction",
+    "method"
   ],
   [
     "src/transaction.js~transaction#validatetransaction",
@@ -700,12 +670,6 @@ window.esdocSearchIndex = [
     "class/src/transaction.js~Transaction.html#instance-method-validateTransactions",
     "src/transaction.js~Transaction#validateTransactions",
     "method"
-  ],
-  [
-    "src/transaction.js~transaction#validator",
-    "class/src/transaction.js~Transaction.html#instance-member-validator",
-    "src/transaction.js~Transaction#validator",
-    "member"
   ],
   [
     "src/transaction.js~transaction#verifysignature",

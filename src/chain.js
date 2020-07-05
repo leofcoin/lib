@@ -1,8 +1,5 @@
-import { GENESISBLOCK, genesisCID } from './params'
-import Validator from './validate'
-import { createRewardTransaction } from './transaction'
-import Hash from './hash'
-import { consensusSubsidyInterval, reward } from './params.js';
+import { GENESISBLOCK, genesisCID, consensusSubsidyInterval, reward } from './params'
+import Block from './block'
 
 const invalidTransactions = {};
 
@@ -24,10 +21,14 @@ const filterPeers = (peers, localPeer) => {
   }, [])
 }
 
-export default class Chain extends Hash{
+/**
+ * @extends {Hash}
+ * @example
+ * const chain = new Chain()
+ */
+export default class Chain extends Block {
   constructor() {
     super()
-    this.validateTransaction = new Validator().validateTransaction
   }
   
   get chain() { return globalThis.chain }
@@ -335,7 +336,7 @@ export default class Chain extends Hash{
   	 */
   async newBlock({transactions = [], previousBlock, address}) {
   	const index = previousBlock.index + 1
-  	const minedTx = await createRewardTransaction(address, this.consensusSubsidy(index))
+  	const minedTx = await this.createRewardTransaction(address, this.consensusSubsidy(index))
   	transactions.push(minedTx.toJSON());
     console.log({transactions});
   	this.data = {
