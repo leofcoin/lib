@@ -408,6 +408,12 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
+    "src/block.js~block#getdifficulty",
+    "class/src/block.js~Block.html#instance-method-getDifficulty",
+    "src/block.js~Block#getDifficulty",
+    "method"
+  ],
+  [
     "src/block.js~block#goodblock",
     "class/src/block.js~Block.html#instance-method-goodBlock",
     "src/block.js~Block#goodBlock",
@@ -417,6 +423,12 @@ window.esdocSearchIndex = [
     "src/block.js~block#newgenesisdagnode",
     "class/src/block.js~Block.html#instance-method-newGenesisDAGNode",
     "src/block.js~Block#newGenesisDAGNode",
+    "method"
+  ],
+  [
+    "src/block.js~block#validate",
+    "class/src/block.js~Block.html#instance-method-validate",
+    "src/block.js~Block#validate",
     "method"
   ],
   [

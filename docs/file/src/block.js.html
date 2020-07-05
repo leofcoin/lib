@@ -69,6 +69,9 @@ export default class Block extends Transaction {
     super()
   }
   
+  getDifficulty(hash) {
+	   return parseInt(hash.substring(0, 8), 16);
+  }
   
   goodBlock(block, difficulty){
     return new Promise(async (resolve, reject) =&gt; {
@@ -79,6 +82,16 @@ export default class Block extends Transaction {
       }      
       resolve(block)
     })
+  }
+  
+  async validate(previousBlock, block, difficulty, unspent) {
+  	if (!this.isValid(&apos;block&apos;, block)) throw this.BlockError(&apos;data&apos;);
+  	// console.log(block, previousBlock);
+  	if (previousBlock.index + 1 !== block.index) throw this.BlockError(&apos;index&apos;);
+  	if (previousBlock.hash !== block.prevHash) throw this.BlockError(&apos;prevhash&apos;);
+  	if (await this.blockHash(block) !== block.hash) throw this.BlockError(&apos;hash&apos;);
+  	if (this.getDifficulty(block.hash) &gt; difficulty) throw this.BlockError(&apos;difficulty&apos;);
+  	return this.validateTransactions(block.transactions, unspent);
   }
   
   /**

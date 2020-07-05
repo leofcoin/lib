@@ -1,15 +1,17 @@
 {
-  "coverage": "33.33%",
-  "expectCount": 69,
+  "coverage": "32.39%",
+  "expectCount": 71,
   "actualCount": 23,
   "files": {
     "src/block.js": {
-      "expectCount": 5,
+      "expectCount": 7,
       "actualCount": 2,
       "undocumentLines": [
         4,
         13,
-        18
+        17,
+        21,
+        32
       ]
     },
     "src/chain.js": {
