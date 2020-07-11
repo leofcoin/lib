@@ -1,12 +1,14 @@
 const test = require('tape');
 const LfcApi = require('lfc-api');
-const { block, chain, error, hash, params, transaction, validate } = require('./../index');
+const Chain = require('./../index');
 
 const address = '8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY';
 
 
 (async () => {
   const api = await new LfcApi()
+  
+  const chain = new Chain()
   
   chain.chain.push({
     hash: 'zsNS6wZiHSg79zrD4dbWFgS1tf9vsVHtLAmPDHsm9QqmFujiALQGzGrJGjFB7rgjQyWZb1EaKyrGKN7K1y1Btv2sxqtffy',

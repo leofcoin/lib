@@ -77,7 +77,7 @@ export default class Chain extends Block {
       const {multihash} = tx
       if (multihash) {
         let value;
-        if (leofcoin.transaction.dag) value = await leofcoin.transaction.dag.get(multihash)
+        if (leofcoin.api.transaction.dag) value = await leofcoin.api.transaction.dag.get(multihash)
         _transactions.push(value)
       } else {
         _transactions.push(tx)
@@ -208,7 +208,7 @@ export default class Chain extends Block {
   	return mempool.filter(async (transaction) => {
       console.log(transaction);
       const multihash = transaction.multihash
-      const value = await leofcoin.transaction.get(multihash)
+      const value = await leofcoin.api.transaction.get(multihash)
       console.log({value});
   		try {
   			await this.validateTransaction(multihash, value, unspent);
@@ -225,10 +225,6 @@ export default class Chain extends Block {
       try {
         let peers = await globalThis.ipfs.swarm.peers()
         peers = await filterPeers(peers, globalThis.peerId)
-        // if (peers.length < 2) return setTimeout(async () => {
-        //   const res = await longestChain()
-        //   resolve(res)
-        // }, 100);
         
         const set = []
         for (const {peer} of peers) {
@@ -247,7 +243,7 @@ export default class Chain extends Block {
         for (const {peer, path} of set) {    
           if (_peers.indexOf(peer) === -1) {
             _peers.push(peer)
-            const block = await leofcoin.block.dag.get(path[0] || path)      
+            const block = await leofcoin.api.block.dag.get(path[0] || path)      
             _blocks.push({block, path: path[0] || path})        
           }        
         }
@@ -310,7 +306,7 @@ export default class Chain extends Block {
       previousBlock = await this.lastBlock()
       
       if (previousBlock.index > chain.length - 1) {
-        await leofcoin.chain.sync()
+        await leofcoin.api.chain.sync()
         previousBlock = await this.lastBlock()
       }
       if (!previousBlock.index) previousBlock = chain[chain.length - 1]
