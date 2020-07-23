@@ -13,23 +13,23 @@ export default class Block extends Transaction {
   constructor() {
     super()
   }
-  
+
   getDifficulty(hash) {
 	   return parseInt(hash.substring(0, 8), 16);
   }
-  
+
   goodBlock(block, difficulty){
     return new Promise(async (resolve, reject) => {
       block.hash = await this.blockHash(block);
       if (parseInt(block.hash.substring(0, 8), 16) >= difficulty) {
         block.nonce++
         block = await this.goodBlock(block, difficulty)
-      }      
+      }
       resolve(block)
     })
   }
-  
-  async validate(previousBlock, block, difficulty, unspent) {
+
+  async validateBlock(previousBlock, block, difficulty, unspent) {
   	if (!this.isValid('block', block)) throw this.BlockError('data');
   	// console.log(block, previousBlock);
   	if (previousBlock.index + 1 !== block.index) throw this.BlockError('index');
@@ -38,7 +38,7 @@ export default class Block extends Transaction {
   	if (this.getDifficulty(block.hash) > difficulty) throw this.BlockError('difficulty');
   	return this.validateTransactions(block.transactions, unspent);
   }
-  
+
   /**
    * Create a new genesis block
    */
