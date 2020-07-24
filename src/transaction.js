@@ -115,11 +115,18 @@ export default class Transaction extends Hash {
    */
   async validateTransactions(transactions, unspent) {
   	const _transactions = []
-  	for (const {multihash} of transactions) {
-  		const tx = await leofcoin.api.transaction.dag.get(multihash)
-  		_transactions.push({multihash, value: tx.toJSON()})
-  		
+  	for (let tx of transactions) {
+      let multihash = tx.multihash
+      
+  		if (multihash) tx = await leofcoin.api.transaction.dag.get(multihash);
+      else {
+        tx = await new LFCTx({...tx})
+        multihash = await util.cid(await tx.serialize())
+      }
+            
+      _transactions.push({multihash, value: tx.toJSON()})
   	}
+    
   	for (const {value, multihash} of _transactions) {
   		// TODO: fix value.scrip
   		await this.validateTransaction(multihash, value, unspent)
