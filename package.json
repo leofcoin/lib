@@ -18,15 +18,15 @@
   "dependencies": {
     "@leofcoin/multi-wallet": "^2.0.0",
     "cids": "^0.8.3",
-    "ipld-lfc": "^0.2.1",
-    "ipld-lfc-tx": "^0.3.3"
+    "ipld-lfc": "^0.3.0",
+    "ipld-lfc-tx": "^0.4.0"
   },
   "devDependencies": {
     "coveralls": "^3.1.0",
     "esdoc": "^1.1.0",
     "esdoc-ecmascript-proposal-plugin": "^1.0.0",
     "esdoc-standard-plugin": "^1.0.0",
-    "lfc-api": "^2.14.4",
+    "lfc-api": "^2.18.1",
     "nyc": "^15.1.0",
     "rollup": "^2.18.2",
     "tape": "^5.0.1"

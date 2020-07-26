@@ -30,7 +30,7 @@ export default class Block extends Transaction {
   }
 
   async validateBlock(previousBlock, block, difficulty, unspent) {
-  	if (!this.isValid('block', block)) throw this.BlockError('data');
+  	if (!ipldLfc.util.isValid(block)) throw this.BlockError('data');
   	// console.log(block, previousBlock);
   	if (previousBlock.index + 1 !== block.index) throw this.BlockError('index');
   	if (previousBlock.hash !== block.prevHash) throw this.BlockError('prevhash');

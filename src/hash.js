@@ -1,7 +1,7 @@
 import IPLDLFCTx from 'ipld-lfc-tx'
 import ipldLfc from 'ipld-lfc'
 import CID from 'cids'
-import Validator from './validate'
+import Errors from './errors'
 
 const { LFCNode, util } = ipldLfc
 
@@ -10,7 +10,7 @@ const { LFCNode, util } = ipldLfc
  * @example
  * const hash = new Hash()
  */
-export default class Hash extends Validator {
+export default class Hash extends Errors {
 	constructor() {
 		super()
 	}

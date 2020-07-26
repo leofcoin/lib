@@ -55,7 +55,7 @@ export default class Chain extends Block {
    * @param {number} height
    */
   consensusSubsidy(height) {
-    console.log(height);
+    // console.log(height);
   	const quarterlings = height / consensusSubsidyInterval;
   	if (quarterlings >= 256) {
   		return 0;
@@ -203,21 +203,23 @@ export default class Chain extends Block {
    * @return {object} transactions
    */
   async nextBlockTransactions() {
-  	const unspent = await this.getUnspent(false);
-    console.log(unspent);
-  	return mempool.filter(async (transaction) => {
-      console.log(transaction);
-      const multihash = transaction.multihash
-      const value = await leofcoin.api.transaction.get(multihash)
-      console.log({value});
-  		try {
-  			await this.validateTransaction(multihash, value, unspent);
-        return transaction
-  		} catch (e) {
-        globalThis.ipfs.pubsub.publish('invalid-transaction', Buffer.from(JSON.stringify(transaction)));
-  			console.error(e);
-  		}
-  	});
+  	
+  	try {
+      const unspent = await this.getUnspent(false);
+      return mempool.filter(async transaction => {
+        const multihash = transaction.multihash
+        const value = await leofcoin.api.transaction.get(multihash)
+    		try {
+    			await this.validateTransaction(multihash, value, unspent);
+          return transaction
+    		} catch (e) {
+          globalThis.ipfs.pubsub.publish('invalid-transaction', Buffer.from(JSON.stringify(transaction)));
+    			console.error(e);
+    		}
+    	});
+    } catch (e) {
+      throw new Error(e)
+    }
   }  
   
   longestChain() {
@@ -298,8 +300,6 @@ export default class Chain extends Block {
   
   
   async nextBlock(address) {
-    console.log(address);
-    console.log({address});
     let transactions;
     let previousBlock;
     try {
@@ -317,7 +317,6 @@ export default class Chain extends Block {
       transactions = await this.nextBlockTransactions();
     } finally {
       // console.log(transactions, previousBlock, address);
-      console.log({transactions});
       return await this.newBlock({transactions, previousBlock, address});
     }
   }  
@@ -334,17 +333,16 @@ export default class Chain extends Block {
   	const index = previousBlock.index + 1
   	const minedTx = await this.createRewardTransaction(address, this.consensusSubsidy(index))
   	transactions.push(minedTx.toJSON());
-    console.log({transactions});
   	this.data = {
   		index,
   		prevHash: previousBlock.hash,
   		time: Math.floor(new Date().getTime() / 1000),
   		transactions,
   		nonce: 0
-  	};
-    console.log({data: this.data});
+  	}
+    
   	this.data.hash = await this.blockHash(this.data);
-    console.log({hash: this.data.hash});
+    
   	return this.data;
   }
 }

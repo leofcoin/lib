@@ -1,4 +1,3 @@
-import Validator from './validate.js'
 import Errors from './errors.js'
 import Hash from './hash.js'
 import { randomBytes } from 'crypto'
@@ -71,7 +70,7 @@ export default class Transaction extends Hash {
   	})
   	transaction.outputs = outputs
   	if (!transaction.script) delete transaction.script
-  	if (!this.isValid('transaction', transaction)) throw this.TransactionError('Invalid transaction');
+  	if (!ipldLfcTx.util.isValid(transaction)) throw this.TransactionError('Invalid transaction');
   	if (multihash !== await this.transactionHash(transaction)) throw this.TransactionError('Invalid transaction hash');
   	// TODO: versions should be handled here...
   	// Verify each input signature
