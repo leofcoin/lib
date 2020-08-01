@@ -6,11 +6,11 @@ const invalid = (name, text) => new Error(`Invalid ${name}: ${text}`);
  */
 export default class Errors {
   BlockError(text) {
-    invalid('block', text)
+    return invalid('block', text)
   }
   
   TransactionError(text) {
-    invalid('transaction', text)
+    return invalid('transaction', text)
   }
   
   MinerWarning(text) {

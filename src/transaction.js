@@ -117,7 +117,7 @@ export default class Transaction extends Hash {
   	for (let tx of transactions) {
       let multihash = tx.multihash
       
-  		if (multihash) tx = await leofcoin.api.transaction.dag.get(multihash);
+      if (multihash) tx = await leofcoin.api.transaction.dag.get(multihash);
       else {
         tx = await new LFCTx({...tx})
         multihash = await util.cid(await tx.serialize())
@@ -126,13 +126,19 @@ export default class Transaction extends Hash {
       _transactions.push({multihash, value: tx.toJSON()})
   	}
     
-  	for (const {value, multihash} of _transactions) {
-  		// TODO: fix value.scrip
-  		await this.validateTransaction(multihash, value, unspent)
-  	}
+  	try {
+      for (const {value, multihash} of _transactions) {
+    		// TODO: fix value.scrip
+    		await this.validateTransaction(multihash, value, unspent)
+    	}
+    } catch (e) {
+      throw e
+    }
   	
   	if (_transactions.filter(({value}) => value.reward === 'mined').length !== 1)
-  		throw this.TransactionError('Transactions cannot have more than one reward')	
+  		throw this.TransactionError('Transactions cannot have more than one reward');
+    
+    return true
   }
   
   /**

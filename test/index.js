@@ -37,7 +37,7 @@ const address = '8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY';
   // })
   const testChain = () => new Promise((resolve, reject) => {
     test('chain', async tape => {
-      tape.plan(14)
+      tape.plan(15)
       
       let value = await chain.getTransactions()
       tape.equals(value.length, 1, 'getTransactions')
@@ -82,6 +82,17 @@ const address = '8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY';
       
       value = await chain.transactionHash(chain.chain[1].transactions[0])
       tape.equals(value, 'z3vzxp8fU86s1epQKDDs762iscaKJU16ra3BkR86bJQb8jSGrnC', 'transactionHash')
+      
+      
+      try {
+        console.log(await chain.validateBlock(chain.chain[0], chain.chain[1], chain.difficulty(), chain.getUnspentForAddress('8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY')));
+        tape.equals(value, true, 'validateBlock')
+        
+      } catch (e) {
+        console.warn({e});
+      } finally {
+        
+      }
       
       setTimeout(function () {
         resolve()
