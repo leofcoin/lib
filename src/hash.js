@@ -37,8 +37,8 @@ export default class Hash extends Errors {
 	 * @param {object} transaction {id, type, inputs, outputs}
 	 */
 	async transactionHash(transaction) {
-		const tx = new IPLDLFCTx.LFCTx(transaction)
-		const cid = await IPLDLFCTx.util.cid(tx.serialize())
+		const tx = await new IPLDLFCTx.LFCTx(transaction)
+		const cid = await IPLDLFCTx.util.cid(await tx.serialize())
 		return cid.toBaseEncodedString()
 	}
 

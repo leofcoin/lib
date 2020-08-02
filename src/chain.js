@@ -290,6 +290,10 @@ export default class Chain extends Block {
     })
   }
   
+  /**
+   * Resolve latest block from the longest chain.
+   * @return Promise(resolve(block))
+   */
   lastBlock() {
     return new Promise(async (resolve, reject) => {
       const result = await this.longestChain();
