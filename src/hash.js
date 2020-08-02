@@ -27,8 +27,8 @@ export default class Hash extends Errors {
 	
 	async blockHash(block) {		
 	  block = await new LFCNode({...block});
-	  const cid = await util.cid(await block.serialize())
-	  return this.hashFromMultihash(cid.toBaseEncodedString());
+	  const cid = await util.cid(util.serialize(block))
+	  return cid.toBaseEncodedString();
 	}
 	
 	/**

@@ -68,9 +68,10 @@ export default class Transaction extends Hash {
   		if (!o.script) delete o.script
   		return o
   	})
+    console.log(transaction);
   	transaction.outputs = outputs
   	if (!transaction.script) delete transaction.script
-  	if (!ipldLfcTx.util.isValid(transaction)) throw this.TransactionError('Invalid transaction');
+  	if (!ipldLfcTx.util.isValid(transaction)) return await ipldLfcTx.util.validate(transaction)
   	if (multihash !== await this.transactionHash(transaction)) throw this.TransactionError('Invalid transaction hash');
   	// TODO: versions should be handled here...
   	// Verify each input signature

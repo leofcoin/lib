@@ -11,7 +11,7 @@ const address = '8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY';
   const chain = new Chain()
   
   chain.chain.push({
-    hash: 'zsNS6wZiHSg79zrD4dbWFgS1tf9vsVHtLAmPDHsm9QqmFujiALQGzGrJGjFB7rgjQyWZb1EaKyrGKN7K1y1Btv2sxqtffy',
+    hash: 'zsNS6waLSmzg9BFR5CwJxJWpmT1ygXpXHuJ8Y4hTeqq8HRAVEcDfUnsMxEeFb7DLmaF3kPiUyEAfdX3dgPdTNLPHqCfvY6',
     index: 1,
     nonce: 263991677,
     prevHash: 'zsNS6wZiHSc2QPHmjV8TMNn798b4Kp9jpjsBNeUkPhaJTza3GosWUgE72Jy3X9jKMrFCcDni7Pq4yXogQN4TcAfrPmTXFt',
@@ -24,7 +24,7 @@ const address = '8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY';
         amount: 150,
         index: 0
       }],
-      reward: '',
+      reward: 'mined',
       script: 'mined',
       time: 1590242832
     }]    
@@ -85,7 +85,7 @@ const address = '8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY';
       
       
       try {
-        console.log(await chain.validateBlock(chain.chain[0], chain.chain[1], chain.difficulty(), chain.getUnspentForAddress('8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY')));
+        value = await chain.validateBlock(chain.chain[0], chain.chain[1], await chain.difficulty(), await chain.getUnspentForAddress('8HFTVVfRMeL1sASrsdp6mvqDW9pvSD4AKySPEq3So16Wo1mpgY'))
         tape.equals(value, true, 'validateBlock')
         
       } catch (e) {

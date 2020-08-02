@@ -1,7 +1,7 @@
 import Transaction from './transaction'
 import ipldLfc from 'ipld-lfc';
 
-const { LFCNode } = ipldLfc
+const { LFCNode, util } = ipldLfc
 
 
 /**
@@ -31,9 +31,16 @@ export default class Block extends Transaction {
 
   async validateBlock(previousBlock, block, difficulty, unspent) {
     const valid = await ipldLfc.util.isValid(block)
-  	if (!valid) return this.BlockError('data')
+  	if (!valid) return await ipldLfc.util.validate(block)
   	// console.log(block, previousBlock);
   	if (previousBlock.index + 1 !== block.index) return this.BlockError('index');
+    if (!previousBlock.hash) {
+      previousBlock = await new LFCNode(previousBlock)
+      previousBlock = previousBlock.toJSON()
+      previousBlock.hash = await util.cid(util.serialize(previousBlock))
+      previousBlock.hash = previousBlock.hash.toBaseEncodedString()
+    }
+    console.log(await this.blockHash(block), block.hash);
   	if (previousBlock.hash !== block.prevHash) throw this.BlockError('prevhash');
   	if (await this.blockHash(block) !== block.hash) return this.BlockError('hash');
   	if (this.getDifficulty(block.hash) > difficulty) return this.BlockError('difficulty');
