@@ -121,6 +121,7 @@ export default class Transaction extends Hash {
       else {
         tx = await new LFCTx({...tx})
         multihash = await util.cid(await tx.serialize())
+        multihash = multihash.toBaseEncodedString()
       }
             
       _transactions.push({multihash, value: tx.toJSON()})
