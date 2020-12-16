@@ -34,13 +34,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors.js~Errors.html">Errors</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/hash.js~Hash.html">Hash</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/validate.js~Validate.html">Validate</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-block">block</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-hash">hash</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-transaction">transaction</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-validate">validate</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBLOCK">GENESISBLOCK</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBS58">GENESISBS58</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-consensusSubsidyInterval">consensusSubsidyInterval</a></span></span></li>
@@ -56,7 +49,7 @@
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import Transaction from &apos;./transaction&apos;
 import ipldLfc from &apos;ipld-lfc&apos;;
 
-const { LFCNode } = ipldLfc
+const { LFCNode, util } = ipldLfc
 
 
 /**
@@ -68,32 +61,42 @@ export default class Block extends Transaction {
   constructor() {
     super()
   }
-  
+
   getDifficulty(hash) {
 	   return parseInt(hash.substring(0, 8), 16);
   }
-  
+
   goodBlock(block, difficulty){
     return new Promise(async (resolve, reject) =&gt; {
       block.hash = await this.blockHash(block);
       if (parseInt(block.hash.substring(0, 8), 16) &gt;= difficulty) {
         block.nonce++
         block = await this.goodBlock(block, difficulty)
-      }      
+      }
       resolve(block)
     })
   }
-  
-  async validate(previousBlock, block, difficulty, unspent) {
-  	if (!this.isValid(&apos;block&apos;, block)) throw this.BlockError(&apos;data&apos;);
+
+  async validateBlock(previousBlock, block, difficulty, unspent) {
+    const valid = await ipldLfc.util.isValid(block)
+  	if (!valid) return await ipldLfc.util.validate(block)
   	// console.log(block, previousBlock);
-  	if (previousBlock.index + 1 !== block.index) throw this.BlockError(&apos;index&apos;);
+  	if (previousBlock.index + 1 !== block.index) return this.BlockError(&apos;index&apos;);
+    if (!previousBlock.hash) {
+      previousBlock = await new LFCNode(previousBlock)
+      previousBlock = previousBlock.toJSON()
+      previousBlock.hash = await util.cid(util.serialize(previousBlock))
+      previousBlock.hash = previousBlock.hash.toBaseEncodedString()
+    }
+    console.log(await this.blockHash(block), block.hash);
   	if (previousBlock.hash !== block.prevHash) throw this.BlockError(&apos;prevhash&apos;);
-  	if (await this.blockHash(block) !== block.hash) throw this.BlockError(&apos;hash&apos;);
-  	if (this.getDifficulty(block.hash) &gt; difficulty) throw this.BlockError(&apos;difficulty&apos;);
+  	if (await this.blockHash(block) !== block.hash) return this.BlockError(&apos;hash&apos;);
+  	if (this.getDifficulty(block.hash) &gt; difficulty) return this.BlockError(&apos;difficulty&apos;);
+    
+  
   	return this.validateTransactions(block.transactions, unspent);
   }
-  
+
   /**
    * Create a new genesis block
    */
@@ -113,7 +116,8 @@ export default class Block extends Transaction {
     const node = new LFCNode(block)
     return node;
   }
-}</code></pre>
+}
+</code></pre>
 
 </div>
 

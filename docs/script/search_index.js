@@ -42,24 +42,6 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
-    "@leofcoin/lib/src/validate.js~validate",
-    "class/src/validate.js~Validate.html",
-    "<span>Validate</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/validate.js</span>",
-    "class"
-  ],
-  [
-    "@leofcoin/lib/src/index.js~block",
-    "variable/index.html#static-variable-block",
-    "<span>block</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/index.js</span>",
-    "variable"
-  ],
-  [
-    "@leofcoin/lib/src/index.js~chain",
-    "variable/index.html#static-variable-chain",
-    "<span>chain</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/index.js</span>",
-    "variable"
-  ],
-  [
     "@leofcoin/lib/src/params.js~consensussubsidyinterval",
     "variable/index.html#static-variable-consensusSubsidyInterval",
     "<span>consensusSubsidyInterval</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/params.js</span>",
@@ -72,21 +54,9 @@ window.esdocSearchIndex = [
     "variable"
   ],
   [
-    "@leofcoin/lib/src/index.js~errors",
-    "variable/index.html#static-variable-errors",
-    "<span>errors</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/index.js</span>",
-    "variable"
-  ],
-  [
     "@leofcoin/lib/src/params.js~genesiscid",
     "variable/index.html#static-variable-genesisCID",
     "<span>genesisCID</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/params.js</span>",
-    "variable"
-  ],
-  [
-    "@leofcoin/lib/src/index.js~hash",
-    "variable/index.html#static-variable-hash",
-    "<span>hash</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/index.js</span>",
     "variable"
   ],
   [
@@ -99,18 +69,6 @@ window.esdocSearchIndex = [
     "@leofcoin/lib/src/params.js~reward",
     "variable/index.html#static-variable-reward",
     "<span>reward</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/params.js</span>",
-    "variable"
-  ],
-  [
-    "@leofcoin/lib/src/index.js~transaction",
-    "variable/index.html#static-variable-transaction",
-    "<span>transaction</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/index.js</span>",
-    "variable"
-  ],
-  [
-    "@leofcoin/lib/src/index.js~validate",
-    "variable/index.html#static-variable-validate",
-    "<span>validate</span> <span class=\"search-result-import-path\">@leofcoin/lib/src/index.js</span>",
     "variable"
   ],
   [
@@ -426,9 +384,9 @@ window.esdocSearchIndex = [
     "method"
   ],
   [
-    "src/block.js~block#validate",
-    "class/src/block.js~Block.html#instance-method-validate",
-    "src/block.js~Block#validate",
+    "src/block.js~block#validateblock",
+    "class/src/block.js~Block.html#instance-method-validateBlock",
+    "src/block.js~Block#validateBlock",
     "method"
   ],
   [
@@ -687,36 +645,6 @@ window.esdocSearchIndex = [
     "src/transaction.js~transaction#verifysignature",
     "class/src/transaction.js~Transaction.html#instance-method-verifySignature",
     "src/transaction.js~Transaction#verifySignature",
-    "method"
-  ],
-  [
-    "src/validate.js",
-    "file/src/validate.js.html",
-    "src/validate.js",
-    "file"
-  ],
-  [
-    "src/validate.js~validate#constructor",
-    "class/src/validate.js~Validate.html#instance-constructor-constructor",
-    "src/validate.js~Validate#constructor",
-    "method"
-  ],
-  [
-    "src/validate.js~validate#isvalid",
-    "class/src/validate.js~Validate.html#instance-method-isValid",
-    "src/validate.js~Validate#isValid",
-    "method"
-  ],
-  [
-    "src/validate.js~validate#schemas",
-    "class/src/validate.js~Validate.html#instance-member-schemas",
-    "src/validate.js~Validate#schemas",
-    "member"
-  ],
-  [
-    "src/validate.js~validate#validate",
-    "class/src/validate.js~Validate.html#instance-method-validate",
-    "src/validate.js~Validate#validate",
     "method"
   ]
 ]

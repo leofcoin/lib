@@ -30,13 +30,13 @@ export default class Chain extends Block {
   constructor() {
     super()
   }
-  
+
   get chain() { return globalThis.chain }
-  
+
   get mempool() { return globalThis.mempool }
-  
+
   get blockHashSet() { return globalThis.blockHashSet }
-  
+
   // TODO: needs 3 nodes running
   invalidTransaction(data) {
     // console.log(data.data.toString());
@@ -50,7 +50,7 @@ export default class Chain extends Block {
       delete invalidTransactions[data.tx];
     }
   }
-  
+
   /**
    * @param {number} height
    */
@@ -64,7 +64,7 @@ export default class Chain extends Block {
   	const minus = quarterlings >= 1 ? (quarterlings * (reward / 256)) : 0;
   	return reward - minus;
   }
-  
+
   async getTransactions(withMempool = true, index = 0) {
     const _chain = [...chain];
     if (index === chain.length - 1) return []
@@ -77,24 +77,24 @@ export default class Chain extends Block {
       const {multihash} = tx
       if (multihash) {
         let value;
-        if (leofcoin.api.transaction.dag) value = await leofcoin.api.transaction.dag.get(multihash)
+        if (leofcoin.api.transaction) value = await leofcoin.api.transaction.get(multihash)
         _transactions.push(value)
       } else {
         _transactions.push(tx)
       }
-      
+
     }
     return _transactions
   };
-  
+
   async getTransactionsForAddress(address, index = 0) {
     const transactions = await this.getTransactions(false, index);
   	return transactions.filter(tx => tx.inputs.find(i => i.address === address) ||
     tx.outputs.find(o => o.address === address));
   };
-  
+
   /**
-   * 
+   *
    * @param {string} withMempool - with or without mempool inclusion
    * @param {number} index - block height to start from
    */
@@ -102,28 +102,29 @@ export default class Chain extends Block {
   	const transactions = await this.getTransactions(withMempool, index);
   	// Find all inputs with their tx ids
   	const inputs = transactions.reduce((inputs, tx) => inputs.concat(tx.inputs), []);
-  
+
   	// Find all outputs with their tx ids
   	const outputs = transactions.reduce((outputs, tx) =>
   		outputs.concat(tx.outputs.map(output => Object.assign({}, output, {tx: tx.id}))), []);
-  
+
   	// Figure out which outputs are unspent
   	const unspent = outputs.filter(output =>
   		typeof inputs.find(input => input.tx === output.tx && input.index === output.index && input.amount === output.amount) === 'undefined');
   	return unspent;
   }
-  
+
   /**
-   * @param {string} address - wallet address
+   * @param {String} address - wallet address
    * @param {number} index - block height to start from
    */
   async getUnspentForAddress(address = null, index = 0) {
     const unspent = await this.getUnspent(true, index)
   	return unspent.filter(u => u.address === address);
   }
-  
+
   /**
-   * @param {string} address - wallet address
+   * @param {String} address - wallet address
+   * @param {Number} index - Block index to get balance after
    */
   async getBalanceForAddress(address = null, index) {
     // debug(`Getting balance for ${address}`)
@@ -132,13 +133,13 @@ export default class Chain extends Block {
     // debug(`Got ${amount} for ${address}`)
   	return amount
   }
-  
+
   /**
    * @deprecated Use getTransactionsForAddress(addr, index) instead
    *
    * @param {string} address - wallet address
    * @param {number} index - block height to start from
-   * 
+   *
    * @return {number} balance
    */
   async getBalanceForAddressAfter(address = null, index = 0) {
@@ -148,24 +149,24 @@ export default class Chain extends Block {
     // debug(`Got ${amount} for ${address} @${index}`)
     return amount
   }
-  
+
   median(array) {
     array.sort((a,b) => a - b)
-  
+
     var half = Math.floor(array.length / 2);
-  
+
     if(array.length % 2)
       return array[half];
     else
       return (array[half - 1] + array[half]) / 2.0;
   }
-  
+
   difficulty() {
   	// TODO: lower difficulty when transactionpool contain more then 500 tx ?
   	// TODO: raise difficulty when pool is empty
-  
+
     // or
-  
+
     // TODO: implement iTX (instant transaction)
     // iTX is handled by multiple peers, itx is chained together by their hashes
     // by handlng a tx as itx the block well be converted into a iRootBlock
@@ -195,61 +196,50 @@ export default class Chain extends Block {
     console.log(`Difficulty: ${10 / blocksMedian}`);
   	return (1000 / (10 / blocksMedian));
   };//10000
-  
-  
+
+
   /**
    * Get the transactions for the next Block
    *
    * @return {object} transactions
    */
   async nextBlockTransactions() {
-  	
+
   	try {
       const unspent = await this.getUnspent(false);
       return mempool.filter(async transaction => {
         const multihash = transaction.multihash
         const value = await leofcoin.api.transaction.get(multihash)
     		try {
-    			await this.validateTransaction(multihash, value, unspent);
+    			await this.validateTransaction(multihash, value.toJSON(), unspent);
           return transaction
     		} catch (e) {
-          globalThis.ipfs.pubsub.publish('invalid-transaction', Buffer.from(JSON.stringify(transaction)));
+          globalThis.pubsub.publish('invalid-transaction', Buffer.from(JSON.stringify(transaction)));
     			console.error(e);
     		}
     	});
     } catch (e) {
       throw new Error(e)
     }
-  }  
-  
+  }
+
   longestChain() {
     return new Promise(async (resolve, reject) => {
       try {
-        let peers = await globalThis.ipfs.swarm.peers()
-        peers = await filterPeers(peers, globalThis.peerId)
-        
-        const set = []
-        for (const {peer} of peers) {
+      console.log(peernet.peers);
+        let peers = await filterPeers([...peernet.peers], peernet.id)
+        let set = []
+        const request = new globalThis.peernet.protos['peernet-request']({request: 'lastBlock'})
+
+        for (const peer of peers) {
           const chunks = []
-          try {
-            for await (const chunk of ipfs.name.resolve(peer)) {
-              chunks.push(chunk)
-            }
-          } catch (e) {
-            console.warn(e)
-          }
-          if (chunks.length > 0) set.push({peer, path: chunks});
+          const to = peernet._getPeerId(peer.id)
+          const node = await peernet.prepareMessage(to, data.encoded)
+          let response = await peer.request(node.encoded)
+          response = new globalThis.peernet.protos['peernet-response'](response)
+          const block = response.decoded.response
+          set.push({peer, block})
         }
-        const _peers = []
-        let _blocks = []
-        for (const {peer, path} of set) {    
-          if (_peers.indexOf(peer) === -1) {
-            _peers.push(peer)
-            const block = await leofcoin.api.block.dag.get(path[0] || path)      
-            _blocks.push({block, path: path[0] || path})        
-          }        
-        }
-        
         let localIndex
         let localHash
         try {
@@ -261,27 +251,26 @@ export default class Chain extends Block {
           await chainStore.put('localIndex', 0)
           await chainStore.put('localBlock', genesisCID)
         }
-        const history = {}
-        _blocks = _blocks.reduce((set, {block, path}) => {
-          if (set.block.index < block.index) {
-            history[set.block.index] = set;
-            set.block.index = block.index
-            set.hash = path.replace('/ipfs/', '')
-            set.seen = 1
-          } else if (set.block.index === block.index) {
-            set.seen = Number(set.seen) + 1
+
+        set = set.reduce((set, c) => {
+          if (Number(c.height) > Number(p.height)) {
+            c.seen = 1
+            return c
+          } else if (Number(c.height) === Number(p.height)) {
+            p.seen += 1
           }
-          return set
-        }, {block: { index: localIndex }, hash: localHash, seen: 0})
-        // temp 
+          return p
+        }, { height: localIndex, hash: localHash, seen: 0})
+
+        // temp
         // if (_blocks.seen < 2) {
         //   _blocks = history[_blocks.block.index - 1]
-        // 
+        //
         // }
         // const localIndex = await chainStore.get('localIndex')
         // const localHash = await chainStore.get('localBlock')
-        return resolve({index: _blocks.block.index, hash: _blocks.hash})
-        
+        return resolve({index: set.height, hash: set.hash})
+
       } catch (e) {
         console.warn(e);
         // debug(e)
@@ -289,7 +278,7 @@ export default class Chain extends Block {
       }
     })
   }
-  
+
   /**
    * Resolve latest block from the longest chain.
    * @return Promise(resolve(block))
@@ -297,18 +286,21 @@ export default class Chain extends Block {
   lastBlock() {
     return new Promise(async (resolve, reject) => {
       const result = await this.longestChain();
-      
+
       resolve(result); // retrieve links
     });
   }
-  
-  
+
+  /**
+   * @param {String} address
+   * @return {Function} newBlock
+   */
   async nextBlock(address) {
     let transactions;
     let previousBlock;
     try {
       previousBlock = await this.lastBlock()
-      
+
       if (previousBlock.index > chain.length - 1) {
         await leofcoin.api.chain.sync()
         previousBlock = await this.lastBlock()
@@ -323,16 +315,16 @@ export default class Chain extends Block {
       // console.log(transactions, previousBlock, address);
       return await this.newBlock({transactions, previousBlock, address});
     }
-  }  
-  
+  }
+
   /**
-  	 * Create new block
-  	 *
-  	 * @param {array} transactions
-  	 * @param {object} previousBlock
-  	 * @param {string} address
-  	 * @return {index, prevHash, time, transactions, nonce}
-  	 */
+	 * Create new block
+	 *
+	 * @param {Array} transactions - transactions
+	 * @param {Object} previousBlock - previousBlock
+	 * @param {String} address - address
+	 * @return {Object} index, prevHash, time, transactions, nonce
+	 */
   async newBlock({transactions = [], previousBlock, address}) {
   	const index = previousBlock.index + 1
   	const minedTx = await this.createRewardTransaction(address, this.consensusSubsidy(index))
@@ -344,9 +336,9 @@ export default class Chain extends Block {
   		transactions,
   		nonce: 0
   	}
-    
+
   	this.data.hash = await this.blockHash(this.data);
-    
+
   	return this.data;
   }
 }

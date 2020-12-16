@@ -34,13 +34,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors.js~Errors.html">Errors</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/hash.js~Hash.html">Hash</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/validate.js~Validate.html">Validate</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-block">block</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-hash">hash</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-transaction">transaction</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-validate">validate</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBLOCK">GENESISBLOCK</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBS58">GENESISBS58</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-consensusSubsidyInterval">consensusSubsidyInterval</a></span></span></li>
@@ -53,8 +46,7 @@
 </nav>
 
 <div class="content" data-ice="content"><h1 data-ice="title">src/transaction.js</h1>
-<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import Validator from &apos;./validate.js&apos;
-import Errors from &apos;./errors.js&apos;
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import Errors from &apos;./errors.js&apos;
 import Hash from &apos;./hash.js&apos;
 import { randomBytes } from &apos;crypto&apos;
 import MultiWallet from &apos;@leofcoin/multi-wallet&apos;
@@ -72,8 +64,8 @@ export default class Transaction extends Hash {
   constructor() {
     super()
   }
-  
-  
+
+
   /**
    * Create transaction
    *
@@ -98,7 +90,7 @@ export default class Transaction extends Hash {
       throw e
     }
   }
-  
+
   /**
    * Create reward transaction for block mining
    *
@@ -109,7 +101,7 @@ export default class Transaction extends Hash {
   async createRewardTransaction(address, amount) {
     return this.newTransaction([], [{index: 0, amount, address}], &apos;mined&apos;);
   }
-  
+
   /**
    * validate transaction
    *
@@ -124,31 +116,32 @@ export default class Transaction extends Hash {
   		if (!o.script) delete o.script
   		return o
   	})
+    console.log(transaction);
   	transaction.outputs = outputs
   	if (!transaction.script) delete transaction.script
-  	if (!isValid(&apos;transaction&apos;, transaction)) throw this.TransactionError(&apos;Invalid transaction&apos;);
+  	if (!ipldLfcTx.util.isValid(transaction)) return await ipldLfcTx.util.validate(transaction)
   	if (multihash !== await this.transactionHash(transaction)) throw this.TransactionError(&apos;Invalid transaction hash&apos;);
   	// TODO: versions should be handled here...
   	// Verify each input signature
-  	
+
   	if (transaction.inputs) {
   		transaction.inputs.forEach(input =&gt; {
   	  	const { signature, address } = input;
   			const hash = this.transactionInputHash(input);
-  
+
   	  	let wallet = new MultiWallet(network);
   	    wallet.fromAddress(address, null, network);
-  			
+
   			if (!wallet.verify(Buffer.from(signature, &apos;hex&apos;), Buffer.from(hash, &apos;hex&apos;)))
   				throw this.TransactionError(&apos;Invalid input signature&apos;);
   		});
-  	
+
   		// Check if inputs are in unspent list
   		transaction.inputs.forEach((input) =&gt; {
   			if (!unspent.find(out =&gt; out.tx === input.tx &amp;&amp; out.index === input.index)) { throw this.TransactionError(&apos;Input has been already spent: &apos; + input.tx); }
-  		});	
+  		});
   	}
-  	
+
   	if (transaction.reward === &apos;mined&apos;) {
   		// For reward transaction: check if reward output is correct
   		if (transaction.outputs.length !== 1) throw this.TransactionError(&apos;Reward transaction must have exactly one output&apos;);
@@ -158,10 +151,10 @@ export default class Transaction extends Hash {
   		if (transaction.inputs.reduce((acc, input) =&gt; acc + input.amount, 0) !==
         transaction.outputs.reduce((acc, output) =&gt; acc + output.amount, 0)) { throw this.TransactionError(&apos;Input and output amounts do not match&apos;); }
   	}
-  
+
   	return true;
   }
-  
+
   /**
    * validate transactions list for current block
    *
@@ -170,20 +163,34 @@ export default class Transaction extends Hash {
    */
   async validateTransactions(transactions, unspent) {
   	const _transactions = []
-  	for (const {multihash} of transactions) {
-  		const tx = await leofcoin.transaction.dag.get(multihash)
-  		_transactions.push({multihash, value: tx.toJSON()})
-  		
+  	for (let tx of transactions) {
+      let multihash = tx.multihash
+
+      if (multihash) tx = await leofcoin.api.transaction.get(multihash);
+      else {
+        tx = await new LFCTx({...tx})
+        multihash = await util.cid(await tx.serialize())
+        multihash = multihash.toBaseEncodedString()
+      }
+
+      _transactions.push({multihash, value: tx.toJSON()})
   	}
-  	for (const {value, multihash} of _transactions) {
-  		// TODO: fix value.scrip
-  		await this.validateTransaction(multihash, value, unspent)
-  	}
-  	
+
+  	try {
+      for (const {value, multihash} of _transactions) {
+    		// TODO: fix value.scrip
+    		await this.validateTransaction(multihash, value, unspent)
+    	}
+    } catch (e) {
+      throw e
+    }
+
   	if (_transactions.filter(({value}) =&gt; value.reward === &apos;mined&apos;).length !== 1)
-  		throw this.TransactionError(&apos;Transactions cannot have more than one reward&apos;)	
+  		throw this.TransactionError(&apos;Transactions cannot have more than one reward&apos;);
+
+    return true
   }
-  
+
   /**
    * Verify signature
    *
@@ -195,7 +202,7 @@ export default class Transaction extends Hash {
   	const wallet = new MultiWallet(network);
   	return wallet.verify(signature, hash, address);
   }
-  
+
   /**
    * Create and sign input
    *
@@ -203,7 +210,7 @@ export default class Transaction extends Hash {
    * @param index Based on transaction output index
    * @param amount
    * @param wallet
-   * @return {transaction, index, amount, address}
+   * @return {Object} {transaction, index, amount, address}
    */
   createInput(transaction, index, amount, wallet) {
   	const input = {
@@ -215,14 +222,14 @@ export default class Transaction extends Hash {
   	input.signature = wallet.sign(Buffer.from(this.transactionInputHash(input), &apos;hex&apos;)).toString(&apos;hex&apos;);
   	return input;
   }
-  
+
   /**
    * Create a transaction
    *
    * @param wallet
    * @param toAddress
    * @param amount
-   * @return {id, reward, inputs, outputs, hash,}
+   * @return {Object} {id, reward, inputs, outputs, hash,}
    */
   async buildTransaction(wallet, toAddress, amount, unspent) {
   	let inputsAmount = 0;

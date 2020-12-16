@@ -34,13 +34,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors.js~Errors.html">Errors</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/hash.js~Hash.html">Hash</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/validate.js~Validate.html">Validate</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-block">block</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-hash">hash</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-transaction">transaction</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-validate">validate</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBLOCK">GENESISBLOCK</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBS58">GENESISBS58</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-consensusSubsidyInterval">consensusSubsidyInterval</a></span></span></li>
@@ -65,11 +58,7 @@
 <div class="self-detail detail">
   <h1 data-ice="name">Chain</h1>
 
-  <div data-ice="instanceDocs" class="instance-docs">
-    <span>You can directly use an instance of this class.</span>
-    
-  <span data-ice="instanceDoc"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span>
-</div>
+  
 
   
   
@@ -332,7 +321,7 @@
           
           <span data-ice="async">async</span>
           
-          <span class="code" data-ice="name"><span><a href="class/src/chain.js~Chain.html#instance-method-getBalanceForAddress">getBalanceForAddress</a></span></span><span class="code" data-ice="signature">(address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/chain.js~Chain.html#instance-method-getBalanceForAddress">getBalanceForAddress</a></span></span><span class="code" data-ice="signature">(address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, index: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span>*</span></span>
         </p>
       </div>
       <div>
@@ -472,7 +461,7 @@
           
           <span data-ice="async">async</span>
           
-          <span class="code" data-ice="name"><span><a href="class/src/chain.js~Chain.html#instance-method-getUnspentForAddress">getUnspentForAddress</a></span></span><span class="code" data-ice="signature">(address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, index: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/chain.js~Chain.html#instance-method-getUnspentForAddress">getUnspentForAddress</a></span></span><span class="code" data-ice="signature">(address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, index: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>): <span>*</span></span>
         </p>
       </div>
       <div>
@@ -534,7 +523,8 @@
       <div>
         
         
-        
+        <div data-ice="description"><p>Resolve latest block from the longest chain.</p>
+</div>
       </div>
     </td>
     <td>
@@ -612,7 +602,7 @@
           
           <span data-ice="async">async</span>
           
-          <span class="code" data-ice="name"><span><a href="class/src/chain.js~Chain.html#instance-method-newBlock">newBlock</a></span></span><span class="code" data-ice="signature">(transactions: <span>array</span>, previousBlock: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></span>, address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>): <span>index, prevHash, time, transactions, nonce</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/chain.js~Chain.html#instance-method-newBlock">newBlock</a></span></span><span class="code" data-ice="signature">(transactions: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>, previousBlock: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>, address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></span>
         </p>
       </div>
       <div>
@@ -641,7 +631,7 @@
           
           <span data-ice="async">async</span>
           
-          <span class="code" data-ice="name"><span><a href="class/src/chain.js~Chain.html#instance-method-nextBlock">nextBlock</a></span></span><span class="code" data-ice="signature">(address: <span>*</span>): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/chain.js~Chain.html#instance-method-nextBlock">nextBlock</a></span></span><span class="code" data-ice="signature">(address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function">Function</a></span></span>
         </p>
       </div>
       <div>
@@ -855,7 +845,7 @@
           
           <span data-ice="async">async</span>
           
-          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-buildTransaction">buildTransaction</a></span></span><span class="code" data-ice="signature">(wallet: <span>*</span>, toAddress: <span>*</span>, amount: <span>*</span>): <span>id, reward, inputs, outputs, hash,</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-buildTransaction">buildTransaction</a></span></span><span class="code" data-ice="signature">(wallet: <span>*</span>, toAddress: <span>*</span>, amount: <span>*</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></span>
         </p>
       </div>
       <div>
@@ -884,7 +874,7 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-createInput">createInput</a></span></span><span class="code" data-ice="signature">(transaction: <span>*</span>, index: <span>*</span>, amount: <span>*</span>, wallet: <span>*</span>): <span>transaction, index, amount, address</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-createInput">createInput</a></span></span><span class="code" data-ice="signature">(transaction: <span>*</span>, index: <span>*</span>, amount: <span>*</span>, wallet: <span>*</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></span>
         </p>
       </div>
       <div>
@@ -1000,7 +990,7 @@
           
           <span data-ice="async">async</span>
           
-          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-validateTransactions">validateTransactions</a></span></span><span class="code" data-ice="signature">(transactions: <span>array</span>, unspent: <span>*</span>)</span>
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-validateTransactions">validateTransactions</a></span></span><span class="code" data-ice="signature">(transactions: <span>array</span>, unspent: <span>*</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span></span>
         </p>
       </div>
       <div>
@@ -1150,7 +1140,7 @@
           
           <span data-ice="async">async</span>
           
-          <span class="code" data-ice="name"><span><a href="class/src/block.js~Block.html#instance-method-validate">validate</a></span></span><span class="code" data-ice="signature">(previousBlock: <span>*</span>, block: <span>*</span>, difficulty: <span>*</span>, unspent: <span>*</span>): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/block.js~Block.html#instance-method-validateBlock">validateBlock</a></span></span><span class="code" data-ice="signature">(previousBlock: <span>*</span>, block: <span>*</span>, difficulty: <span>*</span>, unspent: <span>*</span>): <span>*</span></span>
         </p>
       </div>
       <div>
@@ -1316,7 +1306,7 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber342">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber332">source</a></span></span>
     </span>
   </h3>
 
@@ -1476,7 +1466,7 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber163">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber164">source</a></span></span>
     </span>
   </h3>
 
@@ -1527,11 +1517,11 @@
     
     <span data-ice="async">async</span>
     
-    <span class="code" data-ice="name">getBalanceForAddress</span><span class="code" data-ice="signature">(address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>): <span>*</span></span>
+    <span class="code" data-ice="name">getBalanceForAddress</span><span class="code" data-ice="signature">(address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, index: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span>): <span>*</span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber128">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber129">source</a></span></span>
     </span>
   </h3>
 
@@ -1552,9 +1542,16 @@
     
     <tr data-ice="property" data-depth="0">
       <td data-ice="name" class="code" data-depth="0">address</td>
-      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
       <td data-ice="appendix"></td>
       <td data-ice="description"><p>wallet address</p>
+</td>
+    </tr>
+<tr data-ice="property" data-depth="0">
+      <td data-ice="name" class="code" data-depth="0">index</td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Block index to get balance after</p>
 </td>
     </tr>
 </tbody>
@@ -1603,7 +1600,7 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber144">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber145">source</a></span></span>
     </span>
   </h3>
 
@@ -1915,7 +1912,7 @@
     
     <span data-ice="async">async</span>
     
-    <span class="code" data-ice="name">getUnspentForAddress</span><span class="code" data-ice="signature">(address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, index: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>): <span>*</span></span>
+    <span class="code" data-ice="name">getUnspentForAddress</span><span class="code" data-ice="signature">(address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>, index: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">number</a></span>): <span>*</span></span>
     <span class="right-info">
       
       
@@ -1940,7 +1937,7 @@
     
     <tr data-ice="property" data-depth="0">
       <td data-ice="name" class="code" data-depth="0">address</td>
-      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
       <td data-ice="appendix"></td>
       <td data-ice="description"><p>wallet address</p>
 </td>
@@ -2057,14 +2054,15 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber295">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber286">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  
+  <div data-ice="description"><p>Resolve latest block from the longest chain.</p>
+</div>
 
   
 
@@ -2077,7 +2075,8 @@
       <tbody>
         <tr>
           <td class="return-type code" data-ice="returnType"><span>*</span></td>
-          
+          <td class="return-desc" data-ice="returnDescription"><p>Promise(resolve(block))</p>
+</td>
         </tr>
       </tbody>
     </table>
@@ -2112,7 +2111,7 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber223">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber226">source</a></span></span>
     </span>
   </h3>
 
@@ -2167,7 +2166,7 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber152">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber153">source</a></span></span>
     </span>
   </h3>
 
@@ -2234,11 +2233,11 @@
     
     <span data-ice="async">async</span>
     
-    <span class="code" data-ice="name">newBlock</span><span class="code" data-ice="signature">(transactions: <span>array</span>, previousBlock: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></span>, address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>): <span>index, prevHash, time, transactions, nonce</span></span>
+    <span class="code" data-ice="name">newBlock</span><span class="code" data-ice="signature">(transactions: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span>, previousBlock: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span>, address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber337">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber328">source</a></span></span>
     </span>
   </h3>
 
@@ -2260,21 +2259,24 @@
     
     <tr data-ice="property" data-depth="0">
       <td data-ice="name" class="code" data-depth="0">transactions</td>
-      <td data-ice="type" class="code"><span>array</span></td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"></td>
+      <td data-ice="description"><p>transactions</p>
+</td>
     </tr>
 <tr data-ice="property" data-depth="0">
       <td data-ice="name" class="code" data-depth="0">previousBlock</td>
-      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">object</a></span></td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"></td>
+      <td data-ice="description"><p>previousBlock</p>
+</td>
     </tr>
 <tr data-ice="property" data-depth="0">
       <td data-ice="name" class="code" data-depth="0">address</td>
-      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"></td>
+      <td data-ice="description"><p>address</p>
+</td>
     </tr>
 </tbody>
   </table>
@@ -2286,8 +2288,9 @@
     <table>
       <tbody>
         <tr>
-          <td class="return-type code" data-ice="returnType"><span>index, prevHash, time, transactions, nonce</span></td>
-          
+          <td class="return-type code" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>index, prevHash, time, transactions, nonce</p>
+</td>
         </tr>
       </tbody>
     </table>
@@ -2318,11 +2321,11 @@
     
     <span data-ice="async">async</span>
     
-    <span class="code" data-ice="name">nextBlock</span><span class="code" data-ice="signature">(address: <span>*</span>): <span>*</span></span>
+    <span class="code" data-ice="name">nextBlock</span><span class="code" data-ice="signature">(address: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function">Function</a></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber304">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber298">source</a></span></span>
     </span>
   </h3>
 
@@ -2343,7 +2346,7 @@
     
     <tr data-ice="property" data-depth="0">
       <td data-ice="name" class="code" data-depth="0">address</td>
-      <td data-ice="type" class="code"><span>*</span></td>
+      <td data-ice="type" class="code"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></span></td>
       <td data-ice="appendix"></td>
       <td data-ice="description"></td>
     </tr>
@@ -2357,8 +2360,9 @@
     <table>
       <tbody>
         <tr>
-          <td class="return-type code" data-ice="returnType"><span>*</span></td>
-          
+          <td class="return-type code" data-ice="returnType"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function">Function</a></span></td>
+          <td class="return-desc" data-ice="returnDescription"><p>newBlock</p>
+</td>
         </tr>
       </tbody>
     </table>
@@ -2393,7 +2397,7 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber205">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/chain.js.html#lineNumber206">source</a></span></span>
     </span>
   </h3>
 

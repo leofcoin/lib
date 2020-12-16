@@ -1,71 +1,42 @@
 [
   {
-    "name": "Chain#getBalanceForAddress",
-    "filePath": "src/chain.js",
-    "lines": [
-      {
-        "lineNumber": 124,
-        "line": "  /**\r"
-      },
-      {
-        "lineNumber": 125,
-        "line": "   * @param {string} address - wallet address\r"
-      },
-      {
-        "lineNumber": 126,
-        "line": "   */\r"
-      },
-      {
-        "lineNumber": 127,
-        "line": "  async getBalanceForAddress(address = null, index) {\r"
-      }
-    ],
-    "codeParams": [
-      "address",
-      "index"
-    ],
-    "docParams": [
-      "address"
-    ]
-  },
-  {
     "name": "Chain#newBlock",
     "filePath": "src/chain.js",
     "lines": [
       {
-        "lineNumber": 328,
+        "lineNumber": 319,
         "line": "  /**\r"
       },
       {
-        "lineNumber": 329,
-        "line": "  \t * Create new block\r"
+        "lineNumber": 320,
+        "line": "\t * Create new block\r"
       },
       {
-        "lineNumber": 330,
-        "line": "  \t *\r"
+        "lineNumber": 321,
+        "line": "\t *\r"
       },
       {
-        "lineNumber": 331,
-        "line": "  \t * @param {array} transactions\r"
+        "lineNumber": 322,
+        "line": "\t * @param {Array} transactions - transactions\r"
       },
       {
-        "lineNumber": 332,
-        "line": "  \t * @param {object} previousBlock\r"
+        "lineNumber": 323,
+        "line": "\t * @param {Object} previousBlock - previousBlock\r"
       },
       {
-        "lineNumber": 333,
-        "line": "  \t * @param {string} address\r"
+        "lineNumber": 324,
+        "line": "\t * @param {String} address - address\r"
       },
       {
-        "lineNumber": 334,
-        "line": "  \t * @return {index, prevHash, time, transactions, nonce}\r"
+        "lineNumber": 325,
+        "line": "\t * @return {Object} index, prevHash, time, transactions, nonce\r"
       },
       {
-        "lineNumber": 335,
-        "line": "  \t */\r"
+        "lineNumber": 326,
+        "line": "\t */\r"
       },
       {
-        "lineNumber": 336,
+        "lineNumber": 327,
         "line": "  async newBlock({transactions = [], previousBlock, address}) {\r"
       }
     ],
@@ -83,35 +54,35 @@
     "filePath": "src/transaction.js",
     "lines": [
       {
-        "lineNumber": 46,
+        "lineNumber": 45,
         "line": "  /**\r"
       },
       {
-        "lineNumber": 47,
+        "lineNumber": 46,
         "line": "   * Create reward transaction for block mining\r"
       },
       {
-        "lineNumber": 48,
+        "lineNumber": 47,
         "line": "   *\r"
       },
       {
-        "lineNumber": 49,
+        "lineNumber": 48,
         "line": "   * @param {string} address\r"
       },
       {
-        "lineNumber": 50,
+        "lineNumber": 49,
         "line": "   * @param {number} height\r"
       },
       {
-        "lineNumber": 51,
+        "lineNumber": 50,
         "line": "   * @return {id: string, reward: boolean, inputs: *, outputs: *, hash: string}\r"
       },
       {
-        "lineNumber": 52,
+        "lineNumber": 51,
         "line": "   */\r"
       },
       {
-        "lineNumber": 53,
+        "lineNumber": 52,
         "line": "  async createRewardTransaction(address, amount) {\r"
       }
     ],
@@ -129,39 +100,39 @@
     "filePath": "src/transaction.js",
     "lines": [
       {
-        "lineNumber": 163,
+        "lineNumber": 177,
         "line": "  /**\r"
       },
       {
-        "lineNumber": 164,
+        "lineNumber": 178,
         "line": "   * Create a transaction\r"
       },
       {
-        "lineNumber": 165,
+        "lineNumber": 179,
         "line": "   *\r"
       },
       {
-        "lineNumber": 166,
+        "lineNumber": 180,
         "line": "   * @param wallet\r"
       },
       {
-        "lineNumber": 167,
+        "lineNumber": 181,
         "line": "   * @param toAddress\r"
       },
       {
-        "lineNumber": 168,
+        "lineNumber": 182,
         "line": "   * @param amount\r"
       },
       {
-        "lineNumber": 169,
-        "line": "   * @return {id, reward, inputs, outputs, hash,}\r"
+        "lineNumber": 183,
+        "line": "   * @return {Object} {id, reward, inputs, outputs, hash,}\r"
       },
       {
-        "lineNumber": 170,
+        "lineNumber": 184,
         "line": "   */\r"
       },
       {
-        "lineNumber": 171,
+        "lineNumber": 185,
         "line": "  async buildTransaction(wallet, toAddress, amount, unspent) {\r"
       }
     ],

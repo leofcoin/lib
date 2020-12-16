@@ -34,13 +34,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors.js~Errors.html">Errors</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/hash.js~Hash.html">Hash</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/validate.js~Validate.html">Validate</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-block">block</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-hash">hash</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-transaction">transaction</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-validate">validate</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBLOCK">GENESISBLOCK</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBS58">GENESISBS58</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-consensusSubsidyInterval">consensusSubsidyInterval</a></span></span></li>
@@ -65,11 +58,7 @@
 <div class="self-detail detail">
   <h1 data-ice="name">Block</h1>
 
-  <div data-ice="instanceDocs" class="instance-docs">
-    <span>You can directly use an instance of this class.</span>
-    
-  <span data-ice="instanceDoc"><span><a href="variable/index.html#static-variable-block">block</a></span></span>
-</div>
+  
 
   
   
@@ -243,7 +232,7 @@
           
           <span data-ice="async">async</span>
           
-          <span class="code" data-ice="name"><span><a href="class/src/block.js~Block.html#instance-method-validate">validate</a></span></span><span class="code" data-ice="signature">(previousBlock: <span>*</span>, block: <span>*</span>, difficulty: <span>*</span>, unspent: <span>*</span>): <span>*</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/block.js~Block.html#instance-method-validateBlock">validateBlock</a></span></span><span class="code" data-ice="signature">(previousBlock: <span>*</span>, block: <span>*</span>, difficulty: <span>*</span>, unspent: <span>*</span>): <span>*</span></span>
         </p>
       </div>
       <div>
@@ -428,7 +417,7 @@
           
           <span data-ice="async">async</span>
           
-          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-buildTransaction">buildTransaction</a></span></span><span class="code" data-ice="signature">(wallet: <span>*</span>, toAddress: <span>*</span>, amount: <span>*</span>): <span>id, reward, inputs, outputs, hash,</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-buildTransaction">buildTransaction</a></span></span><span class="code" data-ice="signature">(wallet: <span>*</span>, toAddress: <span>*</span>, amount: <span>*</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></span>
         </p>
       </div>
       <div>
@@ -457,7 +446,7 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-createInput">createInput</a></span></span><span class="code" data-ice="signature">(transaction: <span>*</span>, index: <span>*</span>, amount: <span>*</span>, wallet: <span>*</span>): <span>transaction, index, amount, address</span></span>
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-createInput">createInput</a></span></span><span class="code" data-ice="signature">(transaction: <span>*</span>, index: <span>*</span>, amount: <span>*</span>, wallet: <span>*</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a></span></span>
         </p>
       </div>
       <div>
@@ -573,7 +562,7 @@
           
           <span data-ice="async">async</span>
           
-          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-validateTransactions">validateTransactions</a></span></span><span class="code" data-ice="signature">(transactions: <span>array</span>, unspent: <span>*</span>)</span>
+          <span class="code" data-ice="name"><span><a href="class/src/transaction.js~Transaction.html#instance-method-validateTransactions">validateTransactions</a></span></span><span class="code" data-ice="signature">(transactions: <span>array</span>, unspent: <span>*</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a></span></span>
         </p>
       </div>
       <div>
@@ -832,7 +821,7 @@
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/block.js.html#lineNumber45">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/block.js.html#lineNumber55">source</a></span></span>
     </span>
   </h3>
 
@@ -900,14 +889,14 @@
   
 </div>
 <div class="detail" data-ice="detail">
-  <h3 data-ice="anchor" id="instance-method-validate">
+  <h3 data-ice="anchor" id="instance-method-validateBlock">
     <span class="access" data-ice="access">public</span>
     
     
     
     <span data-ice="async">async</span>
     
-    <span class="code" data-ice="name">validate</span><span class="code" data-ice="signature">(previousBlock: <span>*</span>, block: <span>*</span>, difficulty: <span>*</span>, unspent: <span>*</span>): <span>*</span></span>
+    <span class="code" data-ice="name">validateBlock</span><span class="code" data-ice="signature">(previousBlock: <span>*</span>, block: <span>*</span>, difficulty: <span>*</span>, unspent: <span>*</span>): <span>*</span></span>
     <span class="right-info">
       
       

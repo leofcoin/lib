@@ -17,8 +17,9 @@
   "author": "vandeurenglenn <vandeurenglenn@gmail.com>",
   "dependencies": {
     "@leofcoin/multi-wallet": "^2.0.0",
+    "@leofcoin/peernet": "^0.4.3",
     "cids": "^0.8.3",
-    "ipld-lfc": "^0.3.3",
+    "ipld-lfc": "^0.3.5",
     "ipld-lfc-tx": "^0.4.1"
   },
   "devDependencies": {
@@ -26,9 +27,8 @@
     "esdoc": "^1.1.0",
     "esdoc-ecmascript-proposal-plugin": "^1.0.0",
     "esdoc-standard-plugin": "^1.0.0",
-    "lfc-api": "^2.18.2",
     "nyc": "^15.1.0",
-    "rollup": "^2.23.0",
+    "rollup": "^2.35.1",
     "tape": "^5.0.1"
   },
   "homepage": "https://github.com/leofcoin/lib#readme",

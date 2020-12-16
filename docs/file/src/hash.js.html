@@ -34,13 +34,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors.js~Errors.html">Errors</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/hash.js~Hash.html">Hash</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/validate.js~Validate.html">Validate</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-block">block</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-hash">hash</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-transaction">transaction</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-validate">validate</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBLOCK">GENESISBLOCK</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBS58">GENESISBS58</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-consensusSubsidyInterval">consensusSubsidyInterval</a></span></span></li>
@@ -56,7 +49,7 @@
 <pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import IPLDLFCTx from &apos;ipld-lfc-tx&apos;
 import ipldLfc from &apos;ipld-lfc&apos;
 import CID from &apos;cids&apos;
-import Validator from &apos;./validate&apos;
+import Errors from &apos;./errors&apos;
 
 const { LFCNode, util } = ipldLfc
 
@@ -65,7 +58,7 @@ const { LFCNode, util } = ipldLfc
  * @example
  * const hash = new Hash()
  */
-export default class Hash extends Validator {
+export default class Hash extends Errors {
 	constructor() {
 		super()
 	}
@@ -82,8 +75,8 @@ export default class Hash extends Validator {
 	
 	async blockHash(block) {		
 	  block = await new LFCNode({...block});
-	  const cid = await util.cid(await block.serialize())
-	  return this.hashFromMultihash(cid.toBaseEncodedString());
+	  const cid = await util.cid(util.serialize(block))
+	  return cid.toBaseEncodedString();
 	}
 	
 	/**
@@ -92,8 +85,8 @@ export default class Hash extends Validator {
 	 * @param {object} transaction {id, type, inputs, outputs}
 	 */
 	async transactionHash(transaction) {
-		const tx = new IPLDLFCTx.LFCTx(transaction)
-		const cid = await IPLDLFCTx.util.cid(tx.serialize())
+		const tx = await new IPLDLFCTx.LFCTx(transaction)
+		const cid = await IPLDLFCTx.util.cid(await tx.serialize())
 		return cid.toBaseEncodedString()
 	}
 

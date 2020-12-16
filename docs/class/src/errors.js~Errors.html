@@ -34,13 +34,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/errors.js~Errors.html">Errors</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/hash.js~Hash.html">Hash</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/transaction.js~Transaction.html">Transaction</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/validate.js~Validate.html">Validate</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-block">block</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-chain">chain</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-hash">hash</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-transaction">transaction</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-validate">validate</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBLOCK">GENESISBLOCK</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-GENESISBS58">GENESISBS58</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-variable">V</span><span data-ice="name"><span><a href="variable/index.html#static-variable-consensusSubsidyInterval">consensusSubsidyInterval</a></span></span></li>
@@ -65,16 +58,12 @@
 <div class="self-detail detail">
   <h1 data-ice="name">Errors</h1>
 
-  <div data-ice="instanceDocs" class="instance-docs">
-    <span>You can directly use an instance of this class.</span>
-    
-  <span data-ice="instanceDoc"><span><a href="variable/index.html#static-variable-errors">errors</a></span></span>
-</div>
+  
 
   
   
   
-  <div class="flat-list" data-ice="directSubclass"><h4>Direct Subclass:</h4><div><span><a href="class/src/validate.js~Validate.html">Validate</a></span></div></div>
+  
   
   
   
@@ -124,7 +113,7 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/errors.js~Errors.html#instance-method-BlockError">BlockError</a></span></span><span class="code" data-ice="signature">(text: <span>*</span>)</span>
+          <span class="code" data-ice="name"><span><a href="class/src/errors.js~Errors.html#instance-method-BlockError">BlockError</a></span></span><span class="code" data-ice="signature">(text: <span>*</span>): <span>*</span></span>
         </p>
       </div>
       <div>
@@ -180,7 +169,7 @@
           
           
           
-          <span class="code" data-ice="name"><span><a href="class/src/errors.js~Errors.html#instance-method-TransactionError">TransactionError</a></span></span><span class="code" data-ice="signature">(text: <span>*</span>)</span>
+          <span class="code" data-ice="name"><span><a href="class/src/errors.js~Errors.html#instance-method-TransactionError">TransactionError</a></span></span><span class="code" data-ice="signature">(text: <span>*</span>): <span>*</span></span>
         </p>
       </div>
       <div>
@@ -214,7 +203,7 @@
     
     
     
-    <span class="code" data-ice="name">BlockError</span><span class="code" data-ice="signature">(text: <span>*</span>)</span>
+    <span class="code" data-ice="name">BlockError</span><span class="code" data-ice="signature">(text: <span>*</span>): <span>*</span></span>
     <span class="right-info">
       
       
@@ -248,7 +237,19 @@
 </div>
 </div>
 
-  
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span>*</span></td>
+          
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
 
   
 
@@ -332,7 +333,7 @@
     
     
     
-    <span class="code" data-ice="name">TransactionError</span><span class="code" data-ice="signature">(text: <span>*</span>)</span>
+    <span class="code" data-ice="name">TransactionError</span><span class="code" data-ice="signature">(text: <span>*</span>): <span>*</span></span>
     <span class="right-info">
       
       
@@ -366,7 +367,19 @@
 </div>
 </div>
 
-  
+  <div class="return-params" data-ice="returnParams">
+    <h4>Return:</h4>
+    <table>
+      <tbody>
+        <tr>
+          <td class="return-type code" data-ice="returnType"><span>*</span></td>
+          
+        </tr>
+      </tbody>
+    </table>
+    <div data-ice="returnProperties">
+</div>
+  </div>
 
   
 

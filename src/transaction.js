@@ -16,8 +16,8 @@ export default class Transaction extends Hash {
   constructor() {
     super()
   }
-  
-  
+
+
   /**
    * Create transaction
    *
@@ -42,7 +42,7 @@ export default class Transaction extends Hash {
       throw e
     }
   }
-  
+
   /**
    * Create reward transaction for block mining
    *
@@ -53,7 +53,7 @@ export default class Transaction extends Hash {
   async createRewardTransaction(address, amount) {
     return this.newTransaction([], [{index: 0, amount, address}], 'mined');
   }
-  
+
   /**
    * validate transaction
    *
@@ -75,25 +75,25 @@ export default class Transaction extends Hash {
   	if (multihash !== await this.transactionHash(transaction)) throw this.TransactionError('Invalid transaction hash');
   	// TODO: versions should be handled here...
   	// Verify each input signature
-  	
+
   	if (transaction.inputs) {
   		transaction.inputs.forEach(input => {
   	  	const { signature, address } = input;
   			const hash = this.transactionInputHash(input);
-  
+
   	  	let wallet = new MultiWallet(network);
   	    wallet.fromAddress(address, null, network);
-  			
+
   			if (!wallet.verify(Buffer.from(signature, 'hex'), Buffer.from(hash, 'hex')))
   				throw this.TransactionError('Invalid input signature');
   		});
-  	
+
   		// Check if inputs are in unspent list
   		transaction.inputs.forEach((input) => {
   			if (!unspent.find(out => out.tx === input.tx && out.index === input.index)) { throw this.TransactionError('Input has been already spent: ' + input.tx); }
-  		});	
+  		});
   	}
-  	
+
   	if (transaction.reward === 'mined') {
   		// For reward transaction: check if reward output is correct
   		if (transaction.outputs.length !== 1) throw this.TransactionError('Reward transaction must have exactly one output');
@@ -103,10 +103,10 @@ export default class Transaction extends Hash {
   		if (transaction.inputs.reduce((acc, input) => acc + input.amount, 0) !==
         transaction.outputs.reduce((acc, output) => acc + output.amount, 0)) { throw this.TransactionError('Input and output amounts do not match'); }
   	}
-  
+
   	return true;
   }
-  
+
   /**
    * validate transactions list for current block
    *
@@ -117,17 +117,17 @@ export default class Transaction extends Hash {
   	const _transactions = []
   	for (let tx of transactions) {
       let multihash = tx.multihash
-      
-      if (multihash) tx = await leofcoin.api.transaction.dag.get(multihash);
+
+      if (multihash) tx = await leofcoin.api.transaction.get(multihash);
       else {
         tx = await new LFCTx({...tx})
         multihash = await util.cid(await tx.serialize())
         multihash = multihash.toBaseEncodedString()
       }
-            
+
       _transactions.push({multihash, value: tx.toJSON()})
   	}
-    
+
   	try {
       for (const {value, multihash} of _transactions) {
     		// TODO: fix value.scrip
@@ -136,13 +136,13 @@ export default class Transaction extends Hash {
     } catch (e) {
       throw e
     }
-  	
+
   	if (_transactions.filter(({value}) => value.reward === 'mined').length !== 1)
   		throw this.TransactionError('Transactions cannot have more than one reward');
-    
+
     return true
   }
-  
+
   /**
    * Verify signature
    *
@@ -154,7 +154,7 @@ export default class Transaction extends Hash {
   	const wallet = new MultiWallet(network);
   	return wallet.verify(signature, hash, address);
   }
-  
+
   /**
    * Create and sign input
    *
@@ -162,7 +162,7 @@ export default class Transaction extends Hash {
    * @param index Based on transaction output index
    * @param amount
    * @param wallet
-   * @return {transaction, index, amount, address}
+   * @return {Object} {transaction, index, amount, address}
    */
   createInput(transaction, index, amount, wallet) {
   	const input = {
@@ -174,14 +174,14 @@ export default class Transaction extends Hash {
   	input.signature = wallet.sign(Buffer.from(this.transactionInputHash(input), 'hex')).toString('hex');
   	return input;
   }
-  
+
   /**
    * Create a transaction
    *
    * @param wallet
    * @param toAddress
    * @param amount
-   * @return {id, reward, inputs, outputs, hash,}
+   * @return {Object} {id, reward, inputs, outputs, hash,}
    */
   async buildTransaction(wallet, toAddress, amount, unspent) {
   	let inputsAmount = 0;
