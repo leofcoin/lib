@@ -234,7 +234,7 @@ export default class Chain extends Block {
         for (const peer of peers) {
           const chunks = []
           const to = peernet._getPeerId(peer.id)
-          const node = await peernet.prepareMessage(to, data.encoded)
+          const node = await peernet.prepareMessage(to, request.encoded)
           let response = await peer.request(node.encoded)
           response = new globalThis.peernet.protos['peernet-response'](response)
           const block = response.decoded.response
