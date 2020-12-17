@@ -232,13 +232,14 @@ export default class Chain extends Block {
         const request = new globalThis.peernet.protos['peernet-request']({request: 'lastBlock'})
 
         for (const peer of peers) {
-          const chunks = []
           const to = peernet._getPeerId(peer.id)
-          const node = await peernet.prepareMessage(to, request.encoded)
-          let response = await peer.request(node.encoded)
-          response = new globalThis.peernet.protos['peernet-response'](response)
-          const block = response.decoded.response
-          set.push({peer, block})
+          if (to) {
+            const node = await peernet.prepareMessage(to, request.encoded)
+            let response = await peer.request(node.encoded)
+            response = new globalThis.peernet.protos['peernet-response'](response)
+            const block = response.decoded.response
+            set.push({peer, block})
+          }
         }
         let localIndex
         let localHash
