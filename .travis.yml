@@ -5,18 +5,18 @@ os:
 
 language: node_js
 node_js:
-- node
+- 14
 
 script:
   - npm run compile
   - npm run doc
   - npm run test
 
-after_success:   
+after_success:
   - npm run coverage
   - npm run coveralls
   - node deploy.js success $WEBHOOK_URL
-  
+
 after_failure:
   - node deploy.js failure $WEBHOOK_URL
 
