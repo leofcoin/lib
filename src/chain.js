@@ -230,7 +230,7 @@ export default class Chain extends Block {
         let peers = await filterPeers([...peernet.peers], peernet.id)
         let set = []
         const request = new globalThis.peernet.protos['peernet-request']({
-          request: Buffer.from('lastBlock')
+          request: 'lastBlock'
         })
 
         for (const peer of peers) {
@@ -240,7 +240,7 @@ export default class Chain extends Block {
             let response = await peer.request(node.encoded)
             const proto = new globalThis.peernet.protos['peernet-message'](Buffer.from(response.data))
             response = new globalThis.peernet.protos['peernet-response'](Buffer.from(proto.decoded.data))
-            const block = JSON.parse(response.decoded.response.toString())
+            const block = JSON.parse(response.decoded.response)
             set.push({peer, block})
           }
         }
