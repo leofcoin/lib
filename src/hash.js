@@ -14,23 +14,23 @@ export default class Hash extends Errors {
 	constructor() {
 		super()
 	}
-	
+
 	hashFromMultihash(multihash) {
 	  const cid = new CID(multihash.replace('/ipfs/', ''))
 	  return cid.multihash.slice(cid.prefix.length / 2).toString('hex')
 	}
-	
+
 	multihashFromHash(hash) {
 	  const cid = new CID(1, 'leofcoin-block', Buffer.from(`1d40${hash}`, 'hex'), 'base58btc');
 	  return cid.toBaseEncodedString();
 	}
-	
-	async blockHash(block) {		
+
+	async blockHash(block) {
 	  block = await new LFCNode({...block});
-	  const cid = await util.cid(util.serialize(block))
+	  const cid = await util.cid(await util.serialize(block))
 	  return cid.toBaseEncodedString();
 	}
-	
+
 	/**
 	 * Generate transaction hash
 	 *
@@ -53,5 +53,3 @@ export default class Hash extends Errors {
 	}
 
 }
-
-

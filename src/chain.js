@@ -226,26 +226,32 @@ export default class Chain extends Block {
   longestChain() {
     return new Promise(async (resolve, reject) => {
       try {
-      console.log(peernet.peers);
+        // TODO: peernet.id => peer.id
         let peers = await filterPeers([...peernet.peers], peernet.id)
         let set = []
-        const request = new globalThis.peernet.protos['peernet-request']({request: 'lastBlock'})
+        const request = new globalThis.peernet.protos['peernet-request']({
+          request: Buffer.from('lastBlock')
+        })
 
         for (const peer of peers) {
           const to = peernet._getPeerId(peer.id)
           if (to) {
             const node = await peernet.prepareMessage(to, request.encoded)
             let response = await peer.request(node.encoded)
-            response = new globalThis.peernet.protos['peernet-response'](response)
-            const block = response.decoded.response
+            const proto = new globalThis.peernet.protos['peernet-message'](Buffer.from(response.data))
+            response = new globalThis.peernet.protos['peernet-response'](Buffer.from(response.data))
+            // TODO: where is '��\nv' coming from
+            const block = JSON.parse(response.decoded.response.toString().replace('��\nv', ''))
             set.push({peer, block})
           }
         }
         let localIndex
         let localHash
         try {
-          localIndex = await chainStore.get('localIndex')
-          localHash = await chainStore.get('localBlock')
+          const index = await chainStore.get('localIndex')
+          const hash = await chainStore.get('localBlock')
+          localIndex = Number(index.toString())
+          localHash = hash.toString()
         } catch (e) {
           localIndex = 0;
           localHash = genesisCID;

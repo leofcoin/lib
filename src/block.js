@@ -44,8 +44,8 @@ export default class Block extends Transaction {
   	if (previousBlock.hash !== block.prevHash) throw this.BlockError('prevhash');
   	if (await this.blockHash(block) !== block.hash) return this.BlockError('hash');
   	if (this.getDifficulty(block.hash) > difficulty) return this.BlockError('difficulty');
-    
-  
+
+
   	return this.validateTransactions(block.transactions, unspent);
   }
 
@@ -64,7 +64,6 @@ export default class Block extends Transaction {
     }
     block.hash = await blockHash(block);
     block = await this.goodBlock(block, difficulty)
-    console.log({block});
     const node = new LFCNode(block)
     return node;
   }
