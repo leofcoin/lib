@@ -239,9 +239,8 @@ export default class Chain extends Block {
             const node = await peernet.prepareMessage(to, request.encoded)
             let response = await peer.request(node.encoded)
             const proto = new globalThis.peernet.protos['peernet-message'](Buffer.from(response.data))
-            response = new globalThis.peernet.protos['peernet-response'](Buffer.from(response.data))
-            // TODO: where is '��\nv' coming from
-            const block = JSON.parse(response.decoded.response.toString().replace('��\nv', ''))
+            response = new globalThis.peernet.protos['peernet-response'](Buffer.from(proto.decoded.data))
+            const block = JSON.parse(response.decoded.response.toString())
             set.push({peer, block})
           }
         }
