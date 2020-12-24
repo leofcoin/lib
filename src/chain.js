@@ -258,7 +258,7 @@ export default class Chain extends Block {
           await chainStore.put('localBlock', genesisCID)
         }
 
-        set = set.reduce((set, c) => {
+        set = set.reduce((p, c) => {
           if (Number(c.height) > Number(p.height)) {
             c.seen = 1
             return c
