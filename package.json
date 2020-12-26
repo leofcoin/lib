@@ -20,7 +20,7 @@
     "@leofcoin/peernet": "^0.7.13",
     "cids": "^0.8.3",
     "ipld-lfc": "^0.3.5",
-    "ipld-lfc-tx": "^0.4.1"
+    "ipld-lfc-tx": "^0.4.3"
   },
   "devDependencies": {
     "coveralls": "^3.1.0",
