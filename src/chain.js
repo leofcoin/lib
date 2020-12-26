@@ -194,7 +194,7 @@ export default class Chain extends Block {
     if (blocksMedian < 0) blocksMedian = -blocksMedian
     console.log(`Average Block Time: ${blocksMedian}`);
     console.log(`Difficulty: ${10 / blocksMedian}`);
-  	return (1000 / (10 / blocksMedian));
+  	return (10000 / (10 / blocksMedian));
   };//10000
 
 
@@ -343,7 +343,7 @@ export default class Chain extends Block {
   		nonce: 0
   	}
 
-  	this.data.hash = await this.blockHash(this.data);
+  	this.data.hash = await this.blockHash({...this.data});
 
   	return this.data;
   }
