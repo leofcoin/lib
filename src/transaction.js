@@ -166,7 +166,7 @@ export default class Transaction extends Hash {
    */
   createInput(transaction, index, amount, wallet) {
   	const input = {
-  		transaction,
+  		tx: transaction,
   		index,
   		amount,
   		address: wallet.address,

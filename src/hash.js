@@ -2,8 +2,14 @@ import IPLDLFCTx from 'ipld-lfc-tx'
 import ipldLfc from 'ipld-lfc'
 import CID from 'cids'
 import Errors from './errors'
+import cryptoJs from 'crypto-js';
 
 const { LFCNode, util } = ipldLfc
+const {SHA256} = cryptoJs
+
+const _SHA256 = (object) => {
+  return SHA256(JSON.stringify(object)).toString();
+}
 
 /**
  * @extends {Validator}
@@ -26,8 +32,7 @@ export default class Hash extends Errors {
 	}
 
 	async blockHash(block) {
-	  block = await new LFCNode({...block});
-	  const cid = await util.cid(await util.serialize(block))
+	  const cid = await util.cid(await util.serialize(await new LFCNode({...block})))
 	  return cid.toBaseEncodedString();
 	}
 
