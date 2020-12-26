@@ -212,7 +212,7 @@ export default class Chain extends Block {
         const value = await leofcoin.api.transaction.get(multihash)
     		try {
     			await this.validateTransaction(multihash, value.toJSON(), unspent);
-          return transaction
+          return value.toJSON()
     		} catch (e) {
           globalThis.pubsub.publish('invalid-transaction', Buffer.from(JSON.stringify(transaction)));
     			console.error(e);
